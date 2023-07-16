@@ -1,6 +1,20 @@
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
+    id("dev.icerock.mobile.multiplatform-resources")
+}
+
+dependencies {
+    commonMainApi("dev.icerock.moko:resources:0.22.0")
+
+    commonTestImplementation("dev.icerock.moko:resources-test:0.21.2")
+}
+
+multiplatformResources {
+    multiplatformResourcesPackage = "com.drahovac.weatherstationdisplay" // required
+    multiplatformResourcesClassName = "MR" // optional, default MR
+    iosBaseLocalizationRegion = "en" // optional, default "en"
+    multiplatformResourcesSourceSet = "commonMain"  // optional, default "commonMain"
 }
 
 kotlin {
@@ -11,13 +25,14 @@ kotlin {
             }
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
+            export("dev.icerock.moko:resources:0.22.0")
             baseName = "shared"
         }
     }
