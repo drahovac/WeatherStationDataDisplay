@@ -14,4 +14,5 @@
         5. The device ID associated with your device will be listed in this column.\n
     </string>
     <string name="setup_open_browser">Open in browser</string>
+    <string name="setup_continue">Continue</string>
 </resources>
