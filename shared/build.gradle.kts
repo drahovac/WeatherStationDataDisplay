@@ -2,6 +2,7 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     id("dev.icerock.mobile.multiplatform-resources")
+    id("com.rickclephas.kmp.nativecoroutines") version "1.0.0-ALPHA-13"
 }
 
 dependencies {
@@ -38,13 +39,23 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-12")
+                implementation(Deps.Koin.core)
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+                api(Deps.Koin.android)
+                api(Deps.Koin.compose)
+            }
+        }
         val androidUnitTest by getting
         val iosX64Main by getting
         val iosArm64Main by getting
@@ -72,5 +83,20 @@ android {
     compileSdk = 33
     defaultConfig {
         minSdk = 26
+    }
+}
+
+object Versions {
+    const val koin = "3.4.0"
+    const val sqlDelightVersion = "1.5.5"
+}
+
+object Deps {
+
+    object Koin {
+        const val core = "io.insert-koin:koin-core:${Versions.koin}"
+        const val test = "io.insert-koin:koin-test:${Versions.koin}"
+        const val android = "io.insert-koin:koin-android:${Versions.koin}"
+        const val compose = "io.insert-koin:koin-androidx-compose:${Versions.koin}"
     }
 }

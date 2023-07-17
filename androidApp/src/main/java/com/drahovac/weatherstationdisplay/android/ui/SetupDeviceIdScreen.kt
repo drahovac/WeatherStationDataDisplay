@@ -18,18 +18,53 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.BottomEnd
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
+import com.drahovac.weatherstationdisplay.domain.Destination
+import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdActions
+import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdViewModel
+import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun SetupDeviceIdScreen() {
+fun SetupDeviceIdScreen(
+    navController: NavController,
+    viewModel: SetupDeviceIdViewModel = getViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    ScreenContent(
+        state.orEmpty(),
+        viewModel,
+        {
+            context.openLinkInBrowser(DEVICE_ID_LINK)
+        }
+    ) {
+        viewModel.saveDeviceId {
+            navController.navigateSingle(Destination.SetupApiKey)
+        }
+    }
+}
+
+@Composable
+private fun ScreenContent(
+    deviceId: String,
+    actions: SetupDeviceIdActions,
+    openInBrowser: () -> Unit,
+    submit: () -> Unit,
+) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -64,9 +99,10 @@ fun SetupDeviceIdScreen() {
                 label = {
                     Text(text = stringResource(id = MR.strings.setup_id_input_label.resourceId))
                 },
-                value = "",
+                value = deviceId,
                 colors = TextFieldDefaults.colors(),
-                onValueChange = {})
+                onValueChange = actions::setDeviceId
+            )
 
             Text(
                 text = stringResource(id = MR.strings.setup_id_guid.resourceId),
@@ -79,7 +115,8 @@ fun SetupDeviceIdScreen() {
 
             OutlinedButton(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                onClick = { /*TODO*/ }) {
+                onClick = openInBrowser
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_language_24),
                     contentDescription = null
@@ -89,7 +126,7 @@ fun SetupDeviceIdScreen() {
             }
         }
         FloatingActionButton(
-            onClick = { /*TODO*/ },
+            onClick = submit,
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier
@@ -102,4 +139,15 @@ fun SetupDeviceIdScreen() {
             )
         }
     }
+}
+
+private const val DEVICE_ID_LINK = "https://www.wunderground.com/member/devices"
+
+@Preview
+@Composable
+fun SetupDeviceIdScreenPreview() {
+    ScreenContent(
+        deviceId = "DeviceId",
+        actions = ActionsInvocationHandler.createActionsProxy(),
+        {}) {}
 }

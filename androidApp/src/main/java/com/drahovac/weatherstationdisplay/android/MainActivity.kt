@@ -83,7 +83,7 @@ private fun MainContent(
             startDestination = dest.route()
         ) {
             composable(Destination.SetupDeviceId.route()) {
-                SetupDeviceIdScreen()
+                SetupDeviceIdScreen(navController)
             }
 
             composable(Destination.SetupApiKey.route()) {
