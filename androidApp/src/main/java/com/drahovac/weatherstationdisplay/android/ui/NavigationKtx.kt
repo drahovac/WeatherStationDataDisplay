@@ -5,6 +5,13 @@ import android.content.Intent
 import android.net.Uri
 import androidx.navigation.NavController
 import com.drahovac.weatherstationdisplay.domain.Destination
+import com.drahovac.weatherstationdisplay.viewmodel.ExactlyOnceEventBus
+
+fun ExactlyOnceEventBus<Destination>.navigateSingle(navController: NavController) {
+    receive()?.let {
+        navController.navigateSingle(it)
+    }
+}
 
 fun NavController.navigateSingle(destination: Destination) {
     navigate(destination.route()) {

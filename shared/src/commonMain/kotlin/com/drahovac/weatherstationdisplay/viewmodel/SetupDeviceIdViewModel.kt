@@ -1,6 +1,6 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
-import com.rickclephas.kmm.viewmodel.KMMViewModel
+import com.drahovac.weatherstationdisplay.domain.Destination
 import com.rickclephas.kmm.viewmodel.coroutineScope
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
 import kotlinx.coroutines.delay
@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class SetupDeviceIdViewModel : KMMViewModel(), SetupDeviceIdActions {
+class SetupDeviceIdViewModel : NavigationViewModel(), SetupDeviceIdActions {
 
     private val _state: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -19,11 +19,11 @@ class SetupDeviceIdViewModel : KMMViewModel(), SetupDeviceIdActions {
         _state.value = deviceId
     }
 
-    override fun saveDeviceId(onSuccess: () -> Unit) {
+    override fun saveDeviceId() {
         // TODO
         viewModelScope.coroutineScope.launch {
             delay(3000L)
-            onSuccess()
+            setDestination(Destination.SetupApiKey)
         }
     }
 }
@@ -32,5 +32,5 @@ interface SetupDeviceIdActions {
 
     fun setDeviceId(deviceId: String)
 
-    fun saveDeviceId(onSuccess: () -> Unit)
+    fun saveDeviceId()
 }

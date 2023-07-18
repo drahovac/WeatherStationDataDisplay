@@ -32,7 +32,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
-import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdActions
 import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdViewModel
 import org.koin.androidx.compose.getViewModel
@@ -43,7 +42,10 @@ fun SetupDeviceIdScreen(
     viewModel: SetupDeviceIdViewModel = getViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val dest by viewModel.navigationFlow.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    dest.navigateSingle(navController)
 
     ScreenContent(
         state.orEmpty(),
@@ -52,9 +54,7 @@ fun SetupDeviceIdScreen(
             context.openLinkInBrowser(DEVICE_ID_LINK)
         }
     ) {
-        viewModel.saveDeviceId {
-            navController.navigateSingle(Destination.SetupApiKey)
-        }
+        viewModel.saveDeviceId()
     }
 }
 
@@ -151,3 +151,4 @@ fun SetupDeviceIdScreenPreview() {
         actions = ActionsInvocationHandler.createActionsProxy(),
         {}) {}
 }
+
