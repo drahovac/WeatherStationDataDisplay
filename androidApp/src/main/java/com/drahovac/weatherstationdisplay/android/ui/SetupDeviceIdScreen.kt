@@ -33,6 +33,7 @@ import androidx.navigation.NavController
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdActions
+import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdState
 import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -48,7 +49,7 @@ fun SetupDeviceIdScreen(
     dest.navigateSingle(navController)
 
     ScreenContent(
-        state.orEmpty(),
+        state,
         viewModel,
         {
             context.openLinkInBrowser(DEVICE_ID_LINK)
@@ -60,7 +61,7 @@ fun SetupDeviceIdScreen(
 
 @Composable
 private fun ScreenContent(
-    deviceId: String,
+    state: SetupDeviceIdState,
     actions: SetupDeviceIdActions,
     openInBrowser: () -> Unit,
     submit: () -> Unit,
@@ -94,21 +95,30 @@ private fun ScreenContent(
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(CenterHorizontally)
-                    .padding(bottom = 32.dp),
+                    .align(CenterHorizontally),
                 label = {
                     Text(text = stringResource(id = MR.strings.setup_id_input_label.resourceId))
                 },
-                value = deviceId,
+                value = state.id.orEmpty(),
                 colors = TextFieldDefaults.colors(),
-                onValueChange = actions::setDeviceId
+                onValueChange = actions::setDeviceId,
+                isError = state.error != null
             )
+
+            state.error?.let {
+                Text(
+                    text = stringResource(id = it),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             Text(
                 text = stringResource(id = MR.strings.setup_id_guid.resourceId),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(top = 32.dp),
                 textAlign = TextAlign.Start,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -147,7 +157,7 @@ private const val DEVICE_ID_LINK = "https://www.wunderground.com/member/devices"
 @Composable
 fun SetupDeviceIdScreenPreview() {
     ScreenContent(
-        deviceId = "DeviceId",
+        state = SetupDeviceIdState("DeviceId"),
         actions = ActionsInvocationHandler.createActionsProxy(),
         {}) {}
 }

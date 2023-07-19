@@ -15,4 +15,5 @@
     </string>
     <string name="setup_open_browser">Open in browser</string>
     <string name="setup_continue">Continue</string>
+    <string name="setup_must_not_be_empty">Field must not be empty</string>
 </resources>

@@ -42,6 +42,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-12")
+                implementation("com.russhwolf:multiplatform-settings:1.0.0")
                 implementation(Deps.Koin.core)
             }
         }
@@ -54,9 +55,15 @@ kotlin {
             dependencies {
                 api(Deps.Koin.android)
                 api(Deps.Koin.compose)
+                implementation("androidx.security:security-crypto:1.1.0-alpha06")
             }
         }
-        val androidUnitTest by getting
+        val androidUnitTest by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+                implementation("io.mockk:mockk:1.13.5")
+            }
+        }
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
