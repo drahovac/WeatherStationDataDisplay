@@ -49,13 +49,13 @@ class MainActivity : ComponentActivity(), KoinComponent {
             initialDestination = remember { mutableStateOf(null) }
             FetchInitialDestination()
             initialDestination.value?.let {
-                MainContent()
+                MainContent(it)
             }
         }
     }
 
     @Composable
-    private fun MainContent() {
+    private fun MainContent(destination: Destination) {
         val navController = rememberNavController()
 
         WeatherTheme {
@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
                         .padding(it),
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
-                    MainContent(Destination.SetupDeviceId, navController)
+                    MainContent(destination, navController)
                 }
             }
         }
