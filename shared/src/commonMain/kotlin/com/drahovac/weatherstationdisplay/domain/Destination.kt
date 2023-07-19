@@ -9,6 +9,8 @@ sealed interface Destination {
 
     object SetupApiKey : Destination
 
+    object CurrentWeather : Destination
+
     /**
      * String representation of destination used as route in navigation.
      */
