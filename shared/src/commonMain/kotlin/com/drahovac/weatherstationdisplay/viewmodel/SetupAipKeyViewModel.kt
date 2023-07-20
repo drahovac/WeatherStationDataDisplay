@@ -14,8 +14,7 @@ class SetupAipKeyViewModel(
     private val credentialsRepository: DeviceCredentialsRepository
 ) : NavigationViewModel(), SetupActions {
 
-    private val _state: MutableStateFlow<SetupState> =
-        MutableStateFlow(SetupState())
+    private val _state: MutableStateFlow<SetupState> = MutableStateFlow(SetupState())
 
     @NativeCoroutines
     val state = _state.asStateFlow()

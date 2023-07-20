@@ -9,7 +9,6 @@ import androidx.compose.material.FabPosition
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -23,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
+import com.drahovac.weatherstationdisplay.android.ui.CurrentWeatherScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupApiKeyScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupDeviceIdScreen
 import com.drahovac.weatherstationdisplay.domain.Destination
@@ -102,8 +102,7 @@ private fun MainContent(
             }
 
             composable(Destination.CurrentWeather.route()) {
-                // TODO
-                Text("Destination.CurrentWeather")
+                CurrentWeatherScreen()
             }
         }
     }

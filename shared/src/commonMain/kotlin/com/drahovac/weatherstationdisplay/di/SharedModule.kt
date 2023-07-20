@@ -1,7 +1,11 @@
 package com.drahovac.weatherstationdisplay.di
 
+import com.drahovac.weatherstationdisplay.data.CurrentWeatherDataRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.DeviceCredentialsRepositoryImpl
+import com.drahovac.weatherstationdisplay.data.NetworkClient
+import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
+import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.SetupAipKeyViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdViewModel
@@ -20,9 +24,15 @@ internal val sharedModule = module {
 
     kmmViewModel { SetupAipKeyViewModel(get()) }
 
+    kmmViewModel { CurrentWeatherViewModel(get()) }
+
     single<DeviceCredentialsRepository> { DeviceCredentialsRepositoryImpl(get()) }
 
     factory { InitialDestinationViewModel(get()) }
+
+    single { NetworkClient() }
+
+    single<CurrentWeatherDataRepository> { CurrentWeatherDataRepositoryImpl(get(), get()) }
 }
 
 internal expect inline fun <reified T : KMMViewModel> Module.kmmViewModel(
