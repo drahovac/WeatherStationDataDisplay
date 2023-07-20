@@ -3,6 +3,7 @@ package com.drahovac.weatherstationdisplay.di
 import com.drahovac.weatherstationdisplay.data.DeviceCredentialsRepositoryImpl
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.SetupAipKeyViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdViewModel
 import com.rickclephas.kmm.viewmodel.KMMViewModel
 import org.koin.core.context.startKoin
@@ -16,6 +17,8 @@ internal expect val platformModule: Module
 
 internal val sharedModule = module {
     kmmViewModel { SetupDeviceIdViewModel(get()) }
+
+    kmmViewModel { SetupAipKeyViewModel(get()) }
 
     single<DeviceCredentialsRepository> { DeviceCredentialsRepositoryImpl(get()) }
 

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class SetupDeviceIdViewModel(
+class SetupAipKeyViewModel(
     private val credentialsRepository: DeviceCredentialsRepository
 ) : NavigationViewModel(), SetupActions {
 
@@ -25,14 +25,14 @@ class SetupDeviceIdViewModel(
     }
 
     override fun saveValue() {
-        _state.value.value.orEmpty().let { id ->
-            if (id.isEmpty()) {
+        _state.value.value.orEmpty().let { key ->
+            if (key.isEmpty()) {
                 _state.update { it.copy(error = MR.strings.setup_must_not_be_empty.resourceId) }
             } else {
                 _state.update { it.copy(error = null) }
                 viewModelScope.coroutineScope.launch {
-                    credentialsRepository.saveDeviceId(id)
-                    setDestination(Destination.SetupApiKey)
+                    credentialsRepository.saveApiKey(key)
+                    setDestination(Destination.CurrentWeather)
                 }
             }
         }

@@ -16,4 +16,15 @@
     <string name="setup_open_browser">Open in browser</string>
     <string name="setup_continue">Continue</string>
     <string name="setup_must_not_be_empty">Field must not be empty</string>
+    <string name="setup_finalize">Finalize Setup</string>
+    <string name="setup_enter_api_key">Enter Api key (WEATHER UNDERGROUND)</string>
+    <string name="setup_api_key">Api key</string>
+    <string name="setup_api_key_guide">To locate your Api key on the Weather Underground page, follow these steps:\n
+        1. Log in to your Weather Underground account and navigate to your profile.\n
+        2. Look for the "API Keys" tab.\n
+        3. If you haven\'t generated an API key yet, click on the "Generate API Key" button.\n
+        4. Once the API key is generated, it should appear in the "Your API Key" field or a similar
+        labeled field.\n
+        5. The device ID associated with your API key will be located within that field.\n
+    </string>
 </resources>

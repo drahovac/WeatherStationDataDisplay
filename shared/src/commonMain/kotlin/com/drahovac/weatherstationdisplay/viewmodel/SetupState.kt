@@ -1,6 +1,6 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
-data class SetupDeviceIdState(
-    val id: String? = null,
+data class SetupState(
+    val value: String? = null,
     val error: Int? = null,
 )

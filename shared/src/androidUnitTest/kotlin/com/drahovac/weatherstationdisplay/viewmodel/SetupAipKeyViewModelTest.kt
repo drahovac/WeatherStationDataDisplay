@@ -13,28 +13,27 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-internal class SetupDeviceIdViewModelTest {
-
+internal class SetupAipKeyViewModelTest {
     private val credentialsRepository: DeviceCredentialsRepository = mockk(relaxUnitFun = true)
-    private lateinit var viewModel: SetupDeviceIdViewModel
+    private lateinit var viewModel: SetupAipKeyViewModel
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
         Dispatchers.setMain(Dispatchers.Unconfined)
-        viewModel = SetupDeviceIdViewModel(credentialsRepository)
+        viewModel = SetupAipKeyViewModel(credentialsRepository)
     }
 
     @Test
     fun `set device id`() {
-        viewModel.setValue(DEVICE_ID)
+        viewModel.setValue(API_KEY)
 
-        assertEquals(DEVICE_ID, viewModel.state.value.value)
+        assertEquals(API_KEY, viewModel.state.value.value)
     }
 
     @Test
     fun `set error on save if device id is empty`() {
-        viewModel.setValue(DEVICE_ID)
+        viewModel.setValue(API_KEY)
         viewModel.setValue("")
 
         viewModel.saveValue()
@@ -47,7 +46,7 @@ internal class SetupDeviceIdViewModelTest {
         viewModel.setValue("")
 
         viewModel.saveValue()
-        viewModel.setValue(DEVICE_ID)
+        viewModel.setValue(API_KEY)
         viewModel.saveValue()
 
         assertNull(viewModel.state.value.error)
@@ -55,26 +54,26 @@ internal class SetupDeviceIdViewModelTest {
 
     @Test
     fun `do not save device id if is empty`() {
-        viewModel.setValue(DEVICE_ID)
+        viewModel.setValue(API_KEY)
         viewModel.setValue("")
 
         viewModel.saveValue()
 
-        coVerify(exactly = 0) { credentialsRepository.saveDeviceId(any()) }
+        coVerify(exactly = 0) { credentialsRepository.saveApiKey(any()) }
         assertNull(viewModel.navigationFlow.value.receive())
     }
 
     @Test
     fun `save device id and navigate to next screen`() {
-        viewModel.setValue(DEVICE_ID)
+        viewModel.setValue(API_KEY)
 
         viewModel.saveValue()
 
-        coVerify { credentialsRepository.saveDeviceId(DEVICE_ID) }
-        assertEquals(Destination.SetupApiKey, viewModel.navigationFlow.value.receive())
+        coVerify { credentialsRepository.saveApiKey(API_KEY) }
+        assertEquals(Destination.CurrentWeather, viewModel.navigationFlow.value.receive())
     }
 
     private companion object {
-        const val DEVICE_ID = "DEVICE_ID"
+        const val API_KEY = "API_KEY"
     }
 }

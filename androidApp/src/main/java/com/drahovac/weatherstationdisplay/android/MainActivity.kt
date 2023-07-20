@@ -98,7 +98,7 @@ private fun MainContent(
             }
 
             composable(Destination.SetupApiKey.route()) {
-                SetupApiKeyScreen()
+                SetupApiKeyScreen(navController)
             }
 
             composable(Destination.CurrentWeather.route()) {
