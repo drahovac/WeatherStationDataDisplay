@@ -69,7 +69,6 @@ fun CurrentWeatherScreen(
     // TODO error handling
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ScreenContent(
     state: CurrentWeatherObservation
@@ -77,7 +76,11 @@ private fun ScreenContent(
     val celsius = stringResource(id = MR.strings.current_degree_celsius.resourceId)
 
     Column(Modifier.verticalScroll(rememberScrollState())) {
-        Row(Modifier.padding(24.dp)) {
+        Row(
+            Modifier
+                .padding(horizontal = 24.dp)
+                .padding(top = 24.dp)
+        ) {
             CurrentTemperature(
                 temp = state.metric.temp,
                 heatIndex = state.metric.heatIndex,
@@ -89,9 +92,12 @@ private fun ScreenContent(
             Humidity(
                 dewpt = state.metric.dewpt,
                 humidity = state.humidity,
-                celsius = celsius
+                pressure = state.metric.pressure,
+                precRate = state.metric.precipRate,
+                precTotal = state.metric.precipTotal,
+                celsius = celsius,
             )
-            Wind(state.metric.windSpeed, state.winddir)
+            Wind(state.metric.windSpeed, state.winddir, state.metric.windGust)
         }
     }
 }
@@ -217,10 +223,15 @@ private fun RowScope.CurrentTemperature(
 private fun RowScope.Humidity(
     dewpt: Double,
     humidity: Double,
-    celsius: String
+    pressure: Double,
+    precRate: Double,
+    precTotal: Double,
+    celsius: String,
 ) {
     Column(
-        Modifier.weight(1f)
+        Modifier
+            .weight(1f)
+            .padding(top = 24.dp)
     ) {
         Text(
             text = stringResource(id = MR.strings.current_dew_point.resourceId),
@@ -243,6 +254,39 @@ private fun RowScope.Humidity(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(id = MR.strings.current_pressure.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = "$pressure ${stringResource(id = MR.strings.current_hpa.resourceId)}",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(id = MR.strings.current_prec_rate.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = "$precRate ${stringResource(id = MR.strings.current_mm_hr.resourceId)}",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(id = MR.strings.current_prec_total.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = "$precTotal ${stringResource(id = MR.strings.current_mm.resourceId)}",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 
@@ -250,6 +294,7 @@ private fun RowScope.Humidity(
 private fun RowScope.Wind(
     windSpeed: Double,
     windDir: Int,
+    gust: Double,
 ) {
     Column(
         Modifier
@@ -259,8 +304,23 @@ private fun RowScope.Wind(
     ) {
         Text(
             text = stringResource(id = MR.strings.current_wind.resourceId),
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(id = MR.strings.current_gust.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            textAlign = TextAlign.Start,
+        )
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "$gust ${stringResource(id = MR.strings.current_km_h.resourceId)}",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            textAlign = TextAlign.Start,
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
@@ -368,6 +428,7 @@ private fun RowScope.Compass(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.secondary,
         )
+
     }
 }
 
