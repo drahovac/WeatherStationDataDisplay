@@ -35,4 +35,10 @@
     <string name="current_dew_point">Dew point</string>
     <string name="current_humidity">Humidity</string>
     <string name="current_uv">UV Index</string>
+    <string name="current_wind">Wind</string>
+    <string name="current_north">N</string>
+    <string name="current_west">W</string>
+    <string name="current_south">S</string>
+    <string name="current_east">E</string>
+    <string name="current_km_h">km/h</string>
 </resources>

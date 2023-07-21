@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -23,10 +24,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -41,7 +48,9 @@ import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
 import com.drahovac.weatherstationdisplay.domain.Metric
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
 import org.koin.androidx.compose.getViewModel
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 @Composable
 fun CurrentWeatherScreen(
@@ -69,17 +78,26 @@ private fun ScreenContent(
 
     Column(Modifier.verticalScroll(rememberScrollState())) {
         Row(Modifier.padding(24.dp)) {
-            CurrentTemperature(state, celsius)
+            CurrentTemperature(
+                temp = state.metric.temp,
+                heatIndex = state.metric.heatIndex,
+                celsius = celsius
+            )
             UvIndex(state.uv.roundToInt())
         }
         Row(Modifier.padding(horizontal = 24.dp)) {
-            Humidity(state, celsius)
+            Humidity(
+                dewpt = state.metric.dewpt,
+                humidity = state.humidity,
+                celsius = celsius
+            )
+            Wind(state.metric.windSpeed, state.winddir)
         }
     }
 }
 
 @Composable
-fun RowScope.UvIndex(uv: Int) {
+private fun RowScope.UvIndex(uv: Int) {
     Column(
         Modifier
             .weight(1f)
@@ -107,7 +125,7 @@ fun RowScope.UvIndex(uv: Int) {
 }
 
 @Composable
-fun BoxScope.UvChart(uv: Int) {
+private fun BoxScope.UvChart(uv: Int) {
     Column(
         Modifier
             .align(BottomCenter)
@@ -153,7 +171,8 @@ fun getUvColor(stepValue: Int, currentUV: Int): Color {
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 private fun RowScope.CurrentTemperature(
-    state: CurrentWeatherObservation,
+    temp: Double,
+    heatIndex: Double,
     celsius: String
 ) {
     Column(Modifier.Companion.weight(1f)) {
@@ -169,7 +188,7 @@ private fun RowScope.CurrentTemperature(
             Text(
                 modifier = Modifier.alignByBaseline(),
                 maxLines = 1,
-                text = state.metric.temp.toString(),
+                text = temp.toString(),
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -185,9 +204,9 @@ private fun RowScope.CurrentTemperature(
         }
 
         Text(
-            text = "${stringResource(id = MR.strings.current_feels_like.resourceId)} ${
-                state.metric.heatIndex
-            } $celsius",
+            text = "${
+                stringResource(id = MR.strings.current_feels_like.resourceId)
+            } $heatIndex $celsius",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
@@ -196,7 +215,8 @@ private fun RowScope.CurrentTemperature(
 
 @Composable
 private fun RowScope.Humidity(
-    state: CurrentWeatherObservation,
+    dewpt: Double,
+    humidity: Double,
     celsius: String
 ) {
     Column(
@@ -208,7 +228,7 @@ private fun RowScope.Humidity(
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
         Text(
-            text = "${state.metric.dewpt} $celsius",
+            text = "$dewpt $celsius",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
@@ -219,11 +239,146 @@ private fun RowScope.Humidity(
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
         Text(
-            text = "${state.humidity}%",
+            text = "${humidity}%",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
+}
+
+@Composable
+private fun RowScope.Wind(
+    windSpeed: Double,
+    windDir: Int,
+) {
+    Column(
+        Modifier
+            .weight(1f)
+            .padding(start = 16.dp),
+        horizontalAlignment = CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(id = MR.strings.current_wind.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = stringResource(id = MR.strings.current_north.resourceId),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                modifier = Modifier.padding(end = 4.dp),
+                text = stringResource(id = MR.strings.current_west.resourceId),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Compass(windSpeed, windDir)
+            Text(
+                modifier = Modifier.padding(start = 4.dp),
+                text = stringResource(id = MR.strings.current_east.resourceId),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+        Text(
+            text = stringResource(id = MR.strings.current_south.resourceId),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
+private fun RowScope.Compass(
+    windSpeed: Double,
+    windDir: Int,
+) {
+    val sizeDp = 100.dp
+    val radius = with(LocalDensity.current) { (sizeDp / 2).toPx() }.toFloat()
+    val circleRadius = radius - with(LocalDensity.current) { 3.dp.toPx() }.toFloat()
+    val center = Offset(radius, radius)
+
+    val lines = remember {
+        mutableListOf<Offset>().apply {
+            val numLines = 72
+            val angleIncrement: Float = ((2 * Math.PI) / numLines.toFloat()).toFloat()
+
+            for (i in 0..numLines) {
+                val angle = i.toFloat() * angleIncrement
+                add(computeCircleOffset(angle, radius, center))
+            }
+        }
+    }
+    val windArrowLine = remember(windDir) {
+        computeCircleOffset(
+            ((2 * Math.PI) / 360f * (windDir - 90)).toFloat(),
+            circleRadius,
+            center
+        )
+    }
+    val lineColor = MaterialTheme.colorScheme.primary
+    val circleColor = MaterialTheme.colorScheme.error
+    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
+
+    Column(modifier = Modifier
+        .size(sizeDp)
+        .align(CenterVertically)
+        .drawWithCache {
+            onDrawBehind {
+                lines.forEach {
+                    drawLine(
+                        lineColor,
+                        center,
+                        it,
+                        1.dp.toPx()
+                    )
+                }
+                drawCircle(
+                    backgroundColor,
+                    radius * 0.9F
+                )
+                drawCircle(
+                    circleColor,
+                    6.dp.toPx(),
+                    windArrowLine
+                )
+            }
+        }) {
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+                .padding(top = 28.dp),
+            maxLines = 1,
+            text = windSpeed.toString(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            maxLines = 1,
+            text = stringResource(id = MR.strings.current_km_h.resourceId),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+    }
+}
+
+private fun computeCircleOffset(
+    angle: Float,
+    radius: Float,
+    center: Offset,
+): Offset {
+    val x = center.x + radius * cos(angle)
+    val y = center.y + radius * sin(angle)
+    return Offset(x, y)
 }
 
 @Preview
