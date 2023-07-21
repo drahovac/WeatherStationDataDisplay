@@ -34,4 +34,5 @@
     <string name="current_feels_like">Feels like</string>
     <string name="current_dew_point">Dew point</string>
     <string name="current_humidity">Humidity</string>
+    <string name="current_uv">UV Index</string>
 </resources>

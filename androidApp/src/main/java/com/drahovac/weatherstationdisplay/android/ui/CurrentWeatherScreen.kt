@@ -1,22 +1,35 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment.Companion.BottomCenter
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -28,6 +41,7 @@ import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
 import com.drahovac.weatherstationdisplay.domain.Metric
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
 import org.koin.androidx.compose.getViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun CurrentWeatherScreen(
@@ -53,69 +67,162 @@ private fun ScreenContent(
 ) {
     val celsius = stringResource(id = MR.strings.current_degree_celsius.resourceId)
 
-    Row(Modifier.padding(24.dp)) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = stringResource(id = MR.strings.current_temperature.resourceId),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            FlowRow(
-                Modifier.wrapContentWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    modifier = Modifier.alignByBaseline(),
-                    maxLines = 1,
-                    text = state.metric.temp.toString(),
-                    style = MaterialTheme.typography.displayLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 4.dp)
-                        .alignByBaseline(),
-                    text = celsius,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    maxLines = 1,
-                )
-            }
+    Column(Modifier.verticalScroll(rememberScrollState())) {
+        Row(Modifier.padding(24.dp)) {
+            CurrentTemperature(state, celsius)
+            UvIndex(state.uv.roundToInt())
+        }
+        Row(Modifier.padding(horizontal = 24.dp)) {
+            Humidity(state, celsius)
+        }
+    }
+}
 
+@Composable
+fun RowScope.UvIndex(uv: Int) {
+    Column(
+        Modifier
+            .weight(1f)
+            .padding(start = 16.dp)
+    ) {
+        Text(
+            text = stringResource(id = MR.strings.current_uv.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.align(CenterHorizontally)
+        )
+
+        Box(Modifier.fillMaxWidth()) {
+            UvChart(uv)
             Text(
-                text = "${stringResource(id = MR.strings.current_feels_like.resourceId)} ${
-                    state.metric.heatIndex
-                } $celsius",
-                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                text = uv.toString(),
+                style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        Column(
-            Modifier
-                .weight(1f)
-                .padding(start = 16.dp)) {
-            Text(
-                text = stringResource(id = MR.strings.current_dew_point.resourceId),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+    }
+}
+
+@Composable
+fun BoxScope.UvChart(uv: Int) {
+    Column(
+        Modifier
+            .align(BottomCenter)
+            .padding(top = 4.dp),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        for (i in 0..9) {
+            val widthIncrease = i * 8
+            val currentStep = 10 - i
+
+            Spacer(
+                modifier = Modifier
+                    .align(CenterHorizontally)
+                    .border(
+                        if (currentStep <= uv) 0.dp else 1.dp,
+                        MaterialTheme.colorScheme.onPrimary
+                    )
+                    .background(getUvColor(currentStep, uv))
+                    .height(6.dp)
+                    .width(60.dp + widthIncrease.dp)
             )
-            Text(
-                text = "${state.metric.dewpt} $celsius",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(id = MR.strings.current_humidity.resourceId),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Text(
-                text = "${state.humidity}%",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+            Spacer(
+                modifier = Modifier
+                    .height(2.dp)
+                    .fillMaxWidth()
             )
         }
+    }
+}
+
+fun getUvColor(stepValue: Int, currentUV: Int): Color {
+    return when {
+        stepValue > currentUV -> Color.Transparent
+        stepValue in 0..2 -> Color(0xFF00FF00)
+        stepValue in 3..5 -> Color(0xFFFFFF00)
+        stepValue in 6..7 -> Color(0xFFFF9900)
+        stepValue in 8..9 -> Color(0xFFFF0000)
+        else -> Color(0xFFFF0099)
+    }
+
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun RowScope.CurrentTemperature(
+    state: CurrentWeatherObservation,
+    celsius: String
+) {
+    Column(Modifier.Companion.weight(1f)) {
+        Text(
+            text = stringResource(id = MR.strings.current_temperature.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        FlowRow(
+            Modifier.wrapContentWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                modifier = Modifier.alignByBaseline(),
+                maxLines = 1,
+                text = state.metric.temp.toString(),
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .alignByBaseline(),
+                text = celsius,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                maxLines = 1,
+            )
+        }
+
+        Text(
+            text = "${stringResource(id = MR.strings.current_feels_like.resourceId)} ${
+                state.metric.heatIndex
+            } $celsius",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    }
+}
+
+@Composable
+private fun RowScope.Humidity(
+    state: CurrentWeatherObservation,
+    celsius: String
+) {
+    Column(
+        Modifier.weight(1f)
+    ) {
+        Text(
+            text = stringResource(id = MR.strings.current_dew_point.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = "${state.metric.dewpt} $celsius",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(id = MR.strings.current_humidity.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = "${state.humidity}%",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 
