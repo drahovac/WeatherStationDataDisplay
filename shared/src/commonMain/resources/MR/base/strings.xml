@@ -4,14 +4,13 @@
     <string name="setup_welcome">Welcome</string>
     <string name="setup_enter_device_id">Enter Station ID (WEATHER UNDERGROUND)</string>
     <string name="setup_id_input_label">Station ID</string>
-    <string name="setup_id_guid">To locate your device ID on the Weather Underground website, follow
+    <string name="setup_id_guid">To locate your station ID on the Weather Underground website, follow
         these steps:\n
         1. Visit the Weather Underground website and log in to your account.\n
-        2. Go to your profile section, usually found by clicking on your username or profile
-        picture.\n
+        2. Go to your profile section, usually found by clicking on "My profile".\n
         3. Look for the "My Devices" section or tab.\n
-        4. Within the "My Devices" section, you should find a column labeled "ID" or "Device ID."\n
-        5. The device ID associated with your device will be listed in this column.\n
+        4. Within the "My Devices" section, you should find a column labeled "ID"."\n
+        5. The station ID associated with your device will be listed in this column.\n
     </string>
     <string name="setup_open_browser">Open in browser</string>
     <string name="setup_continue">Continue</string>

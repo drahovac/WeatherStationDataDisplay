@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="app_name">Meteostanice</string>
+    <string name="setup_welcome">Vítejte</string>
+    <string name="setup_enter_device_id">Zadejte ID stanice (WEATHER UNDERGROUND)</string>
+    <string name="setup_id_input_label">ID Stanice</string>
+    <string name="setup_id_guid">Postup k získání ID stanice na stránkách Weather Underground:\n
+        1. Navštivte stránku Weather Underground a přihlašte se ke svému účtu.\n
+        2. Jděte do svého profilu.\n
+        3. Najděte záložku "My Devices".\n
+        4. V záložce "My Devices" nalezněte sloupeček "ID"."\n
+        5. Zde naleznete ID vaší stanice.\n
+    </string>
+    <string name="setup_open_browser">Otevřít v prohlížeči</string>
+    <string name="setup_continue">Pokračovat</string>
+    <string name="setup_must_not_be_empty">Pole musí být vyplněno</string>
+    <string name="setup_finalize">Dokončete nastavení</string>
+    <string name="setup_enter_api_key">Zadejte Api klíč (WEATHER UNDERGROUND)</string>
+    <string name="setup_api_key">Api klíč</string>
+    <string name="setup_api_key_guide">Postup k získání Api klíče:\n
+        1. Navštivte stránku Weather Underground a přihlašte se ke svému účtu.\n
+        2. Najděte záložku "API Keys".\n
+        3. Jestliže nemáte ještě vygenerovaný klíč klikněte na tlačítko "Generate API Key".\n
+        4. Jakmile klíč vygenerujet, měl by se zobrazit v poli "Your API Key".\n
+        5. Klíč můžete zkopírovat do schránky pomocí tlačítka "Copy to clipboard".\n
+    </string>
+
+    <string name="current_temperature">Aktuální teplota</string>
+    <string name="current_degree_celsius">°C</string>
+    <string name="current_feels_like">Pocitová teplota</string>
+    <string name="current_dew_point">Rosný bod</string>
+    <string name="current_humidity">Vlhkost</string>
+    <string name="current_uv">UV Index</string>
+    <string name="current_wind">Vítr</string>
+    <string name="current_north">S</string>
+    <string name="current_west">Z</string>
+    <string name="current_south">J</string>
+    <string name="current_east">V</string>
+    <string name="current_km_h">km/h</string>
+    <string name="current_gust">Nárazy větru</string>
+    <string name="current_pressure">Tlak</string>
+    <string name="current_hpa">HPa</string>
+    <string name="current_prec_rate">Míra srážek</string>
+    <string name="current_prec_total">Srážky celkem</string>
+    <string name="current_mm">mm</string>
+    <string name="current_mm_hr">mm/hod</string>
+</resources>
