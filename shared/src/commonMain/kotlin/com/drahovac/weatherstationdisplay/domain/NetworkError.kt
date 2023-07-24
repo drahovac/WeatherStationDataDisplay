@@ -10,3 +10,9 @@ sealed class NetworkError : Throwable() {
 
     data class General(val error: Throwable) : NetworkError()
 }
+
+fun <T> Result<T>.networkErrorOrNull(): NetworkError? {
+    return exceptionOrNull()?.let {
+        if (it is NetworkError) it else NetworkError.General(it)
+    }
+}

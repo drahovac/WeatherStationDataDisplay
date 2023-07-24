@@ -36,6 +36,18 @@ class DeviceCredentialsRepositoryImpl(
         }
     }
 
+    override suspend fun removeApiKey() {
+        withContext(Dispatchers.IO) {
+            settings[API_KEY] = null
+        }
+    }
+
+    override suspend fun removeDeviceId() {
+        withContext(Dispatchers.IO) {
+            settings[DEVICE_ID_KEY] = null
+        }
+    }
+
     private companion object {
         const val API_KEY = "API_KEY"
         const val DEVICE_ID_KEY = "DEVICE_ID_KEY"

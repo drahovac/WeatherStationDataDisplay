@@ -32,7 +32,11 @@ class SetupDeviceIdViewModel(
                 _state.update { it.copy(error = null) }
                 viewModelScope.coroutineScope.launch {
                     credentialsRepository.saveDeviceId(id)
-                    setDestination(Destination.SetupApiKey)
+                    setDestination(
+                        if (credentialsRepository.getApiKey() == null) {
+                            Destination.SetupApiKey
+                        } else Destination.CurrentWeather
+                    )
                 }
             }
         }

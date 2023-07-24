@@ -47,4 +47,11 @@
     <string name="current_prec_total">Precipitation total</string>
     <string name="current_mm">mm</string>
     <string name="current_mm_hr">mm/hr</string>
+    <string name="current_error_title">Something went wrong</string>
+    <string name="current_error_content">Error warning</string>
+    <string name="current_error_new_api_key">Insert new api key</string>
+    <string name="current_error_new_api_key_message">The API key you provided is not valid. Please ensure you have entered the correct API key and try again. </string>
+    <string name="current_error_new_station_id">Insert new station id</string>
+    <string name="current_error_station_id_message">The Station ID you provided is not valid. Please ensure you have entered the correct Station ID and try again. </string>
+    <string name="current_error_quota">Request Quota Exceeded: You have reached your API request limit. Your quota will reset in 24 hours. Please try again late</string>
 </resources>

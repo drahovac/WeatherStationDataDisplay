@@ -2,6 +2,8 @@ package com.drahovac.weatherstationdisplay.viewmodel
 
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
+import com.drahovac.weatherstationdisplay.domain.Destination
+import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
 import com.drahovac.weatherstationdisplay.domain.Metric
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -20,6 +22,7 @@ import kotlin.test.assertEquals
 internal class CurrentWeatherViewModelTest {
 
     private val currentWeatherDataRepository: CurrentWeatherDataRepository = mockk()
+    private val credentialsRepository: DeviceCredentialsRepository = mockk(relaxUnitFun = true)
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var currentWeatherViewModel: CurrentWeatherViewModel
 
@@ -28,7 +31,8 @@ internal class CurrentWeatherViewModelTest {
     fun setUp() {
         coEvery { currentWeatherDataRepository.getCurrentData() } returns Result.success(OBSERVATION)
         Dispatchers.setMain(testDispatcher)
-        currentWeatherViewModel = CurrentWeatherViewModel(currentWeatherDataRepository)
+        currentWeatherViewModel =
+            CurrentWeatherViewModel(currentWeatherDataRepository, credentialsRepository)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,8 +52,36 @@ internal class CurrentWeatherViewModelTest {
         val job = launch { currentWeatherViewModel.observeWeather() }
         advanceTimeBy(1)
 
-        assertEquals(OBSERVATION, currentWeatherViewModel.state.value)
+        assertEquals(OBSERVATION, currentWeatherViewModel.state.value.observation)
         job.cancel()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `renew api key`() = runTest(testDispatcher) {
+        currentWeatherViewModel.onNewApiKey()
+
+        testDispatcher.scheduler.advanceTimeBy(1)
+
+        coVerify { credentialsRepository.removeApiKey() }
+        assertEquals(
+            Destination.SetupApiKey,
+            currentWeatherViewModel.navigationFlow.value.receive()
+        )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `renew device id`() = runTest(testDispatcher) {
+        currentWeatherViewModel.onNewDeviceId()
+
+        testDispatcher.scheduler.advanceTimeBy(1)
+
+        coVerify { credentialsRepository.removeDeviceId() }
+        assertEquals(
+            Destination.SetupDeviceId,
+            currentWeatherViewModel.navigationFlow.value.receive()
+        )
     }
 
     private companion object {

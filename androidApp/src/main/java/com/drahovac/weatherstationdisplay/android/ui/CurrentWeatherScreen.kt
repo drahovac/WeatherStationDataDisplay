@@ -1,5 +1,7 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
+import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -16,10 +19,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,8 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,10 +50,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
 import com.drahovac.weatherstationdisplay.MR
+import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
 import com.drahovac.weatherstationdisplay.domain.Metric
+import com.drahovac.weatherstationdisplay.domain.NetworkError
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
 import org.koin.androidx.compose.getViewModel
 import kotlin.math.cos
@@ -54,9 +65,13 @@ import kotlin.math.sin
 
 @Composable
 fun CurrentWeatherScreen(
-    viewModel: CurrentWeatherViewModel = getViewModel()
+    navController: NavController,
+    viewModel: CurrentWeatherViewModel = getViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val dest by viewModel.navigationFlow.collectAsStateWithLifecycle()
+
+    dest.navigateSingle(navController)
     val lifecycle = LocalLifecycleOwner.current
 
     LaunchedEffect(key1 = Unit) {
@@ -65,8 +80,14 @@ fun CurrentWeatherScreen(
         }
     }
 
-    state?.let { ScreenContent(it) }
-    // TODO error handling
+    state.observation?.let { ScreenContent(it) }
+    state.error?.let {
+        ErrorContent(
+            it,
+            onNewApiKey = viewModel::onNewApiKey,
+            onNewDeviceId = viewModel::onNewDeviceId
+        )
+    }
 }
 
 @Composable
@@ -442,6 +463,88 @@ private fun computeCircleOffset(
     return Offset(x, y)
 }
 
+@Composable
+fun ErrorContent(
+    error: NetworkError,
+    onNewDeviceId: () -> Unit,
+    onNewApiKey: () -> Unit,
+) {
+    Column(Modifier.verticalScroll(rememberScrollState())) {
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.titleLarge,
+            text = stringResource(id = MR.strings.current_error_title.resourceId)
+        )
+
+        Image(
+            modifier = Modifier
+                .size(120.dp)
+                .align(CenterHorizontally)
+                .padding(bottom = 8.dp),
+            painter = painterResource(id = R.drawable.baseline_error_24),
+            contentDescription = stringResource(id = MR.strings.current_error_content.resourceId),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.error)
+        )
+
+        Text(
+            text = getErrorText(error),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+
+        if (error is NetworkError.InvalidDeviceId) {
+            RenewButton(
+                text = MR.strings.current_error_new_station_id.resourceId,
+                onNewDeviceId
+            )
+        }
+        if (error is NetworkError.InvalidApiKey) {
+            RenewButton(
+                text = MR.strings.current_error_new_api_key.resourceId,
+                onNewApiKey
+            )
+        }
+
+    }
+}
+
+@Composable
+private fun RenewButton(
+    @StringRes text: Int,
+    action: () -> Unit
+) {
+    OutlinedButton(
+        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 32.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        onClick = action
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.baseline_autorenew_24),
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.widthIn(8.dp))
+        Text(text = stringResource(id = text))
+    }
+}
+
+@Composable
+fun getErrorText(error: NetworkError): String {
+    return when (error) {
+        is NetworkError.InvalidApiKey -> stringResource(id = MR.strings.current_error_new_api_key_message.resourceId)
+        is NetworkError.InvalidDeviceId -> stringResource(id = MR.strings.current_error_station_id_message.resourceId)
+        is NetworkError.TooManyRequests -> stringResource(id = MR.strings.current_error_quota.resourceId)
+        else -> error.message.orEmpty()
+    }
+}
+
 @Preview
 @Composable
 fun CurrentWeatherScreenPreview() {
@@ -477,5 +580,13 @@ fun CurrentWeatherScreenPreview() {
                 )
             )
         )
+    }
+}
+
+@Preview
+@Composable
+fun CurrentWeatherScreenErrorPreview() {
+    WeatherTheme {
+        ErrorContent(error = NetworkError.InvalidApiKey, {}, {})
     }
 }

@@ -106,7 +106,7 @@ private fun MainContent(
             }
 
             composable(Destination.CurrentWeather.route()) {
-                CurrentWeatherScreen()
+                CurrentWeatherScreen(navController)
             }
         }
     }

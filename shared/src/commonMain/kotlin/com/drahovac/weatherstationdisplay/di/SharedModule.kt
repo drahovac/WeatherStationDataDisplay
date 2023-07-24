@@ -24,7 +24,7 @@ internal val sharedModule = module {
 
     kmmViewModel { SetupAipKeyViewModel(get()) }
 
-    kmmViewModel { CurrentWeatherViewModel(get()) }
+    kmmViewModel { CurrentWeatherViewModel(get(), get()) }
 
     single<DeviceCredentialsRepository> { DeviceCredentialsRepositoryImpl(get()) }
 

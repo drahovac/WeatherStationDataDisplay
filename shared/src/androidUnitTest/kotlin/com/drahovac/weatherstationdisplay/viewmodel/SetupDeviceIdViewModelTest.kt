@@ -3,6 +3,7 @@ package com.drahovac.weatherstationdisplay.viewmodel
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -65,13 +66,25 @@ internal class SetupDeviceIdViewModelTest {
     }
 
     @Test
-    fun `save device id and navigate to next screen`() {
+    fun `save device id and navigate to api screen if key empty`() {
+        coEvery { credentialsRepository.getApiKey() } returns null
         viewModel.setValue(DEVICE_ID)
 
         viewModel.saveValue()
 
         coVerify { credentialsRepository.saveDeviceId(DEVICE_ID) }
         assertEquals(Destination.SetupApiKey, viewModel.navigationFlow.value.receive())
+    }
+
+    @Test
+    fun `save device id and navigate to weather screen if key present`() {
+        coEvery { credentialsRepository.getApiKey() } returns "ApiKEy"
+        viewModel.setValue(DEVICE_ID)
+
+        viewModel.saveValue()
+
+        coVerify { credentialsRepository.saveDeviceId(DEVICE_ID) }
+        assertEquals(Destination.CurrentWeather, viewModel.navigationFlow.value.receive())
     }
 
     private companion object {
