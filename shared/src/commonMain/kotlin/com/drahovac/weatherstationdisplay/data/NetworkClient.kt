@@ -11,6 +11,7 @@ import io.ktor.client.request.get
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.reflect.TypeInfo
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -18,18 +19,24 @@ class NetworkClient {
 
     private val client = HttpClient { clientConfiguration() }
 
-    suspend fun request(
+    suspend fun <T> request(
         path: String,
-        params: Map<String, String>
-    ) = client.get {
-        url {
-            protocol = URLProtocol.HTTPS
-            host = "api.weather.com"
-            path(path)
-            params.forEach {
-                parameters.append(it.key, it.value)
+        params: Map<String, String>,
+        typeInfo: TypeInfo
+    ): Result<T> {
+        val dto = client.get {
+            url {
+                protocol = URLProtocol.HTTPS
+                host = "api.weather.com"
+                path(path)
+                params.forEach {
+                    parameters.append(it.key, it.value)
+                }
             }
+        }.call.let {
+            it.body(typeInfo) as T
         }
+        return Result.success(dto)
     }
 
     private fun HttpClientConfig<*>.clientConfiguration() {

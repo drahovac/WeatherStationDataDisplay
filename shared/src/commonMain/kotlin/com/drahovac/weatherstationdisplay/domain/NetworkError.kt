@@ -6,5 +6,7 @@ sealed class NetworkError : Throwable() {
 
     object InvalidApiKey : NetworkError()
 
+    object TooManyRequests : NetworkError()
+
     data class General(val error: Throwable) : NetworkError()
 }

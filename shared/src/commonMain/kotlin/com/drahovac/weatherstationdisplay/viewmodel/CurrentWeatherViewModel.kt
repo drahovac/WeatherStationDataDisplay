@@ -22,7 +22,8 @@ class CurrentWeatherViewModel(
 
     suspend fun observeWeather() {
         while (coroutineContext.isActive) {
-            _state.update { currentWeatherDataRepository.getCurrentData().getOrNull() }
+            val result = currentWeatherDataRepository.getCurrentData()
+            _state.update { result.getOrNull() }
             delay(DELAY)
         }
     }
