@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 33
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1-alpha"
     }
     buildFeatures {
         compose = true
@@ -28,7 +28,12 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(
+                getDefaultProguardFile(Version.proguardDefaultRules),
+                Version.proguardRules
+            )
         }
     }
     compileOptions {
@@ -56,4 +61,6 @@ dependencies {
 
 object Version {
     const val COMPOSE = "1.4.3"
+    const val proguardDefaultRules = "proguard-android.txt"
+    const val proguardRules = "proguard-rules.pro"
 }
