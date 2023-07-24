@@ -19,7 +19,7 @@ fun SetupApiKeyScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val dest by viewModel.navigationFlow.collectAsStateWithLifecycle()
 
-    dest.navigateSingle(navController)
+    dest.popUp(navController)
 
     ScreenContent(
         state,

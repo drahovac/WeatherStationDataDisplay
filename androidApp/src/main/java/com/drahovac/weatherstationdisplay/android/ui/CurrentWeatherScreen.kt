@@ -71,7 +71,7 @@ fun CurrentWeatherScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val dest by viewModel.navigationFlow.collectAsStateWithLifecycle()
 
-    dest.navigateSingle(navController)
+    dest.popUp(navController)
     val lifecycle = LocalLifecycleOwner.current
 
     LaunchedEffect(key1 = Unit) {
