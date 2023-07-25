@@ -65,4 +65,11 @@
     </string>
     <string name="current_nav">Current weather</string>
     <string name="history_nav">History</string>
+    <string name="history_no_data">No data</string>
+    <string name="history_no_data_message">To get started, please enter the start date from which
+        you\'d like to download weather history data. Once you provide the date and press the
+        \'Download\' button, to retrieve the weather information.
+    </string>
+    <string name="history_start_date">Start date</string>
+    <string name="history_start_download">Download</string>
 </resources>

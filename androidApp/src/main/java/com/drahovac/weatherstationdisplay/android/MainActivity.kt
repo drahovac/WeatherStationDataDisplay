@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
 import com.drahovac.weatherstationdisplay.android.ui.CurrentWeatherScreen
+import com.drahovac.weatherstationdisplay.android.ui.HistoryScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupApiKeyScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupDeviceIdScreen
 import com.drahovac.weatherstationdisplay.android.ui.popCurrent
@@ -123,7 +124,7 @@ private fun MainContent(
             }
 
             composable(Destination.History.route()) {
-                Text(text = "TODO")
+                HistoryScreen()
             }
         }
     }
