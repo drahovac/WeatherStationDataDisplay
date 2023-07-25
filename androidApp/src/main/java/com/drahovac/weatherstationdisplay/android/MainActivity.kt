@@ -4,11 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.FabPosition
+import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,17 +20,24 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
 import com.drahovac.weatherstationdisplay.android.ui.CurrentWeatherScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupApiKeyScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupDeviceIdScreen
+import com.drahovac.weatherstationdisplay.android.ui.navigateSingle
+import com.drahovac.weatherstationdisplay.android.ui.popCurrent
 import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
 import org.koin.core.component.KoinComponent
@@ -65,12 +76,15 @@ class MainActivity : ComponentActivity(), KoinComponent {
             Scaffold(
                 isFloatingActionButtonDocked = true,
                 floatingActionButtonPosition = FabPosition.Center,
+                bottomBar = {
+                    BottomNavigation(navController)
+                },
             ) {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it),
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    color = MaterialTheme.colorScheme.primaryContainer,
                 ) {
                     MainContent(destination, navController)
                 }
@@ -108,8 +122,59 @@ private fun MainContent(
             composable(Destination.CurrentWeather.route()) {
                 CurrentWeatherScreen(navController)
             }
+
+            composable(Destination.History.route()) {
+                Text(text = "TODO")
+            }
         }
     }
+}
+
+@Composable
+private fun BottomNavigation(navController: NavHostController) {
+    val destination = remember(navController.currentBackStackEntryAsState().value) {
+        navController.currentBackStackEntry?.destination?.route?.destination()
+    }
+
+    if (isBottomNavigationVisible(destination)) {
+        androidx.compose.material.BottomNavigation(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = 8.dp,
+        ) {
+            BottomNavigationItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_thermostat_24),
+                        contentDescription = null
+                    )
+                },
+                label = { Text(stringResource(id = MR.strings.current_nav.resourceId)) },
+                selected = destination == Destination.CurrentWeather,
+                onClick = {
+                    navController.popCurrent(Destination.CurrentWeather)
+                })
+            BottomNavigationItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_calendar_month_24),
+                        contentDescription = null
+                    )
+                },
+                label = { Text(stringResource(id = MR.strings.history_nav.resourceId)) },
+                selected = destination == Destination.History,
+                onClick = {
+                    navController.popCurrent(Destination.History)
+                })
+        }
+    }
+}
+
+private fun String?.destination(): Destination? {
+    return Destination.values().find { it.route() == this }
+}
+
+fun isBottomNavigationVisible(destination: Destination?): Boolean {
+    return destination != null && destination != Destination.SetupApiKey && destination != Destination.SetupDeviceId
 }
 
 @Preview

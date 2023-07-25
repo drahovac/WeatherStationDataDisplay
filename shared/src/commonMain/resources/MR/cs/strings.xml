@@ -52,4 +52,6 @@
     <string name="current_error_new_station_id">Vložte nové ID stanice</string>
     <string name="current_error_station_id_message">Poskytnuté ID stanice není platné. Ujistěte se, že jste zadali správné ID stanice a zkuste to znovu.</string>
     <string name="current_error_quota">Překročený limit požadavků: Dosáhli jste svého omezení požadavků API. Váš limit se obnoví do 24 hodin. Zkuste to prosím později.</string>
+    <string name="current_nav">Aktuální počasí</string>
+    <string name="history_nav">Historie</string>
 </resources>

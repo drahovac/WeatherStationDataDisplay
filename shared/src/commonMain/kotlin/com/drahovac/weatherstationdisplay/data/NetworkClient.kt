@@ -51,8 +51,8 @@ class NetworkClient {
             level = LogLevel.ALL
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 5000
-            socketTimeoutMillis = 5000
+            requestTimeoutMillis = 15000
+            socketTimeoutMillis = 15000
         }
         install(ContentNegotiation) {
             json(json)

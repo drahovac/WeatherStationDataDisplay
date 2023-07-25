@@ -4,7 +4,8 @@
     <string name="setup_welcome">Welcome</string>
     <string name="setup_enter_device_id">Enter Station ID (WEATHER UNDERGROUND)</string>
     <string name="setup_id_input_label">Station ID</string>
-    <string name="setup_id_guid">To locate your station ID on the Weather Underground website, follow
+    <string name="setup_id_guid">To locate your station ID on the Weather Underground website,
+        follow
         these steps:\n
         1. Visit the Weather Underground website and log in to your account.\n
         2. Go to your profile section, usually found by clicking on "My profile".\n
@@ -51,8 +52,16 @@
     <string name="current_error_title">Something went wrong</string>
     <string name="current_error_content">Error warning</string>
     <string name="current_error_new_api_key">Insert new api key</string>
-    <string name="current_error_new_api_key_message">The API key you provided is not valid. Please ensure you have entered the correct API key and try again. </string>
+    <string name="current_error_new_api_key_message">The API key you provided is not valid. Please
+        ensure you have entered the correct API key and try again.
+    </string>
     <string name="current_error_new_station_id">Insert new station id</string>
-    <string name="current_error_station_id_message">The Station ID you provided is not valid. Please ensure you have entered the correct Station ID and try again. </string>
-    <string name="current_error_quota">Request Quota Exceeded: You have reached your API request limit. Your quota will reset in 24 hours. Please try again late</string>
+    <string name="current_error_station_id_message">The Station ID you provided is not valid. Please
+        ensure you have entered the correct Station ID and try again.
+    </string>
+    <string name="current_error_quota">Request Quota Exceeded: You have reached your API request
+        limit. Your quota will reset in 24 hours. Please try again late
+    </string>
+    <string name="current_nav">Current weather</string>
+    <string name="history_nav">History</string>
 </resources>

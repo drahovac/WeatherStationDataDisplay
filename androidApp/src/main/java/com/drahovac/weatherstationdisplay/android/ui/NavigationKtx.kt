@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.viewmodel.ExactlyOnceEventBus
 
@@ -25,6 +24,12 @@ fun ExactlyOnceEventBus<Destination>.popUp(navController: NavController) {
 fun NavController.navigateSingle(destination: Destination) {
     navigate(destination.route()) {
         launchSingleTop = true
+    }
+}
+
+fun NavController.popCurrent(destination: Destination) {
+    navigate(destination.route()) {
+        popUpTo(destination.route())
     }
 }
 

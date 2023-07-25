@@ -3,16 +3,12 @@ package com.drahovac.weatherstationdisplay.domain;
 /**
  * Destination where to navigate.
  */
-sealed interface Destination {
+enum class Destination {
 
-    object SetupDeviceId : Destination
-
-    object SetupApiKey : Destination
-
-    object CurrentWeather : Destination
+    SetupDeviceId, SetupApiKey, CurrentWeather, History;
 
     /**
      * String representation of destination used as route in navigation.
      */
-    fun route(): String = this::class.qualifiedName.orEmpty()
+    fun route(): String = this.name
 }
