@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -118,8 +117,45 @@ private fun ScreenContent(
                 precTotal = state.metric.precipTotal,
                 celsius = celsius,
             )
-            Wind(state.metric.windSpeed, state.winddir, state.metric.windGust)
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp, top = 24.dp),
+                horizontalAlignment = CenterHorizontally,
+            ) {
+                SolarRadiation(state.solarRadiation)
+                Wind(state.metric.windSpeed, state.winddir, state.metric.windGust)
+            }
         }
+    }
+}
+
+@Composable
+fun SolarRadiation(solarRadiation: Double) {
+    Text(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(id = MR.strings.current_solar_radiation.resourceId),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        textAlign = TextAlign.Start,
+    )
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            modifier = Modifier.alignByBaseline(),
+            text = solarRadiation.toString(),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            textAlign = TextAlign.Start,
+        )
+        Text(
+            modifier = Modifier
+                .alignByBaseline()
+                .padding(start = 4.dp),
+            text = stringResource(id = MR.strings.current_radiation_units.resourceId),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            textAlign = TextAlign.Start,
+        )
     }
 }
 
@@ -312,64 +348,53 @@ private fun RowScope.Humidity(
 }
 
 @Composable
-private fun RowScope.Wind(
+private fun Wind(
     windSpeed: Double,
     windDir: Int,
     gust: Double,
 ) {
-    Column(
-        Modifier
-            .weight(1f)
-            .padding(start = 16.dp),
-        horizontalAlignment = CenterHorizontally,
-    ) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        text = stringResource(id = MR.strings.current_gust.resourceId),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        textAlign = TextAlign.Start,
+    )
+    Text(
+        modifier = Modifier.fillMaxWidth(),
+        text = "$gust ${stringResource(id = MR.strings.current_km_h.resourceId)}",
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        textAlign = TextAlign.Start,
+    )
+    Text(
+        modifier = Modifier.padding(top = 8.dp),
+        text = stringResource(id = MR.strings.current_north.resourceId),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onPrimaryContainer
+    )
+    Row(verticalAlignment = CenterVertically) {
         Text(
-            text = stringResource(id = MR.strings.current_wind.resourceId),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(id = MR.strings.current_gust.resourceId),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            textAlign = TextAlign.Start,
-        )
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = "$gust ${stringResource(id = MR.strings.current_km_h.resourceId)}",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            textAlign = TextAlign.Start,
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = stringResource(id = MR.strings.current_north.resourceId),
+            modifier = Modifier.padding(end = 4.dp),
+            text = stringResource(id = MR.strings.current_west.resourceId),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                modifier = Modifier.padding(end = 4.dp),
-                text = stringResource(id = MR.strings.current_west.resourceId),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Compass(windSpeed, windDir)
-            Text(
-                modifier = Modifier.padding(start = 4.dp),
-                text = stringResource(id = MR.strings.current_east.resourceId),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
+        Compass(windSpeed, windDir)
         Text(
-            text = stringResource(id = MR.strings.current_south.resourceId),
+            modifier = Modifier.padding(start = 4.dp),
+            text = stringResource(id = MR.strings.current_east.resourceId),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
+    Text(
+        text = stringResource(id = MR.strings.current_south.resourceId),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onPrimaryContainer
+    )
 }
 
 @Composable

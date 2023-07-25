@@ -31,13 +31,14 @@
     <string name="current_dew_point">Rosný bod</string>
     <string name="current_humidity">Vlhkost</string>
     <string name="current_uv">UV Index</string>
-    <string name="current_wind">Vítr</string>
     <string name="current_north">S</string>
     <string name="current_west">Z</string>
     <string name="current_south">J</string>
     <string name="current_east">V</string>
     <string name="current_km_h">km/h</string>
     <string name="current_gust">Nárazy větru</string>
+    <string name="current_solar_radiation">Solární záření</string>
+    <string name="current_radiation_units">watt/m²</string>
     <string name="current_pressure">Tlak</string>
     <string name="current_hpa">HPa</string>
     <string name="current_prec_rate">Míra srážek</string>
