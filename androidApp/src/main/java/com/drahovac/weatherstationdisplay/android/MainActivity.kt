@@ -7,13 +7,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.FabPosition
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -23,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
@@ -36,7 +36,6 @@ import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
 import com.drahovac.weatherstationdisplay.android.ui.CurrentWeatherScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupApiKeyScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupDeviceIdScreen
-import com.drahovac.weatherstationdisplay.android.ui.navigateSingle
 import com.drahovac.weatherstationdisplay.android.ui.popCurrent
 import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
@@ -137,11 +136,10 @@ private fun BottomNavigation(navController: NavHostController) {
     }
 
     if (isBottomNavigationVisible(destination)) {
-        androidx.compose.material.BottomNavigation(
+        NavigationBar(
             modifier = Modifier.fillMaxWidth(),
-            elevation = 8.dp,
         ) {
-            BottomNavigationItem(
+            NavigationBarItem(
                 icon = {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_thermostat_24),
@@ -153,7 +151,7 @@ private fun BottomNavigation(navController: NavHostController) {
                 onClick = {
                     navController.popCurrent(Destination.CurrentWeather)
                 })
-            BottomNavigationItem(
+            NavigationBarItem(
                 icon = {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_calendar_month_24),
