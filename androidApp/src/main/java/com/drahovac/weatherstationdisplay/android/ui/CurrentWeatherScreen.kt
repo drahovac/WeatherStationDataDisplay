@@ -369,6 +369,17 @@ private fun Wind(
         color = MaterialTheme.colorScheme.onPrimaryContainer,
         textAlign = TextAlign.Start,
     )
+
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        text = stringResource(id = MR.strings.current_wind_speed.resourceId),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        textAlign = TextAlign.Start,
+    )
+
     Text(
         modifier = Modifier.padding(top = 8.dp),
         text = stringResource(id = MR.strings.current_north.resourceId),

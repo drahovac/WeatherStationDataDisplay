@@ -37,6 +37,7 @@
     <string name="current_east">V</string>
     <string name="current_km_h">km/h</string>
     <string name="current_gust">Nárazy větru</string>
+    <string name="current_wind_speed">Rychlost větru</string>
     <string name="current_solar_radiation">Solární záření</string>
     <string name="current_radiation_units">watt/m²</string>
     <string name="current_pressure">Tlak</string>

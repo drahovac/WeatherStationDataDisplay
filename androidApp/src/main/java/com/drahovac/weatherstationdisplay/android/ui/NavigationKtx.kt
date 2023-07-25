@@ -29,6 +29,7 @@ fun NavController.navigateSingle(destination: Destination) {
 
 fun NavController.popCurrent(destination: Destination) {
     navigate(destination.route()) {
+        launchSingleTop = true
         popUpTo(destination.route())
     }
 }
