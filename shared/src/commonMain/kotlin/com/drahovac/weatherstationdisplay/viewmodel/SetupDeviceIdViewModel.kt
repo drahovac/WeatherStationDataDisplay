@@ -27,7 +27,7 @@ class SetupDeviceIdViewModel(
     override fun saveValue() {
         _state.value.value.orEmpty().let { id ->
             if (id.isEmpty()) {
-                _state.update { it.copy(error = MR.strings.setup_must_not_be_empty.resourceId) }
+                _state.update { it.copy(error = MR.strings.setup_must_not_be_empty) }
             } else {
                 _state.update { it.copy(error = null) }
                 viewModelScope.coroutineScope.launch {

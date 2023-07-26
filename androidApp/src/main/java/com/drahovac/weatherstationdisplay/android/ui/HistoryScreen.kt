@@ -163,7 +163,8 @@ private fun DateDialog(
 
         )
 
-    DatePickerDialog(onDismissRequest = actions::switchDateDialog,
+    DatePickerDialog(
+        onDismissRequest = actions::switchDateDialog,
         confirmButton = {
             Button(
                 onClick = {
@@ -176,12 +177,16 @@ private fun DateDialog(
                 Text(text = stringResource(id = MR.strings.history_start_select.resourceId))
             }
         }) {
-        DatePicker(
-            state = datePickerState,
-            dateValidator = { date ->
-                date <= java.time.LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
-            }
-        )
+        Column(Modifier
+            .padding(horizontal = 8.dp)
+            .verticalScroll(rememberScrollState())) {
+            DatePicker(
+                state = datePickerState,
+                dateValidator = { date ->
+                    date <= java.time.LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                }
+            )
+        }
     }
 }
 

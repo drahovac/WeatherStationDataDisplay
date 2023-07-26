@@ -49,7 +49,7 @@ internal class HistoryViewModelTest {
     fun `set error on download initial history if empty date`() {
         historyViewModel.downloadInitialHistory()
 
-        assertEquals(MR.strings.setup_must_not_be_empty.resourceId, stateValue.noData!!.error)
+        assertEquals(MR.strings.setup_must_not_be_empty, stateValue.noData!!.error)
     }
 
     @Test

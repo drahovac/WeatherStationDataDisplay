@@ -48,7 +48,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-12")
+                api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-8")
                 implementation("com.russhwolf:multiplatform-settings:1.0.0")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
                 implementation(Deps.Koin.core)

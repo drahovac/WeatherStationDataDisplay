@@ -185,7 +185,11 @@ private fun RowScope.UvIndex(uv: Int) {
             modifier = Modifier.align(CenterHorizontally)
         )
 
-        Box(Modifier.fillMaxWidth()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        ) {
             UvChart(uv)
             Text(
                 modifier = Modifier.fillMaxWidth(),

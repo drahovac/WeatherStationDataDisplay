@@ -40,7 +40,7 @@ class HistoryViewModel : KMMViewModel(), HistoryActions {
             println(it)
         } ?: run {
             _state.update {
-                it.copy(noData = it.noData?.copy(error = MR.strings.setup_must_not_be_empty.resourceId))
+                it.copy(noData = it.noData?.copy(error = MR.strings.setup_must_not_be_empty))
             }
         }
     }

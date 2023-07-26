@@ -38,7 +38,7 @@ internal class SetupAipKeyViewModelTest {
 
         viewModel.saveValue()
 
-        assertEquals(MR.strings.setup_must_not_be_empty.resourceId, viewModel.state.value.error)
+        assertEquals(MR.strings.setup_must_not_be_empty, viewModel.state.value.error)
     }
 
     @Test
