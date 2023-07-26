@@ -10,13 +10,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,12 +31,40 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
+import com.drahovac.weatherstationdisplay.domain.fromUTCEpochMillis
+
+import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillis
+import com.drahovac.weatherstationdisplay.domain.toFormattedDate
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryActions
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryState
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryViewModel
+import kotlinx.datetime.LocalDate
+import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun HistoryScreen() {
+fun HistoryScreen(viewModel: HistoryViewModel = getViewModel()) {
+
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    if (state.noData?.isPickerVisible == true) {
+        DateDialog(
+            startDate = state.noData?.startDate,
+            actions = viewModel
+        )
+    }
+
+    ScreenContent(state, viewModel)
+}
+
+@Composable
+private fun ScreenContent(
+    state: HistoryState,
+    actions: HistoryActions
+) {
     Column(
         Modifier
             .fillMaxWidth()
@@ -71,13 +105,13 @@ fun HistoryScreen() {
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = { println("vaclav") }
+                    onClick = actions::switchDateDialog,
                 ),
             readOnly = true,
             label = {
                 Text(text = stringResource(id = MR.strings.history_start_date.resourceId))
             },
-            value = "",
+            value = state.noData?.startDate?.toFormattedDate().orEmpty(),
             enabled = false,
             colors = TextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onSurface,
@@ -117,10 +151,54 @@ fun HistoryScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateDialog(
+    startDate: LocalDate?,
+    actions: HistoryActions
+) {
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = startDate?.toCurrentUTCMillis()
+    )
+
+    DatePickerDialog(onDismissRequest = actions::switchDateDialog,
+        confirmButton = {
+            Button(
+                onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        actions.selectStartDate(
+                            LocalDate.fromUTCEpochMillis(it)
+                        )
+                    }
+                }) {
+                Text(text = stringResource(id = MR.strings.history_start_select.resourceId))
+            }
+        }) {
+        DatePicker(
+            state = datePickerState
+        )
+    }
+}
+
 @Preview
 @Composable
 fun HistoryScreenPreview() {
     WeatherTheme {
-        HistoryScreen()
+        ScreenContent(
+            state = HistoryState(),
+            actions = ActionsInvocationHandler.createActionsProxy()
+        )
     }
 }
+
+@Preview
+@Composable
+fun HistoryScreenDateDialogPreview() {
+    WeatherTheme {
+        DateDialog(
+            startDate = null,
+            actions = ActionsInvocationHandler.createActionsProxy()
+        )
+    }
+}
+

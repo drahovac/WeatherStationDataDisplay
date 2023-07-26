@@ -67,4 +67,5 @@
     </string>
     <string name="history_start_date">Počáteční datum</string>
     <string name="history_start_download">Stáhnout</string>
+    <string name="history_start_select">Vybrat</string>
 </resources>

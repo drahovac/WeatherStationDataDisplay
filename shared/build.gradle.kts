@@ -9,7 +9,7 @@ plugins {
 }
 
 dependencies {
-    commonMainApi("dev.icerock.moko:resources:0.23.0")
+    commonMainApi("dev.icerock.moko:resources:0.22.0")
 
     commonTestImplementation("dev.icerock.moko:resources-test:0.21.2")
 }
@@ -50,6 +50,7 @@ kotlin {
             dependencies {
                 api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-12")
                 implementation("com.russhwolf:multiplatform-settings:1.0.0")
+                api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
                 implementation(Deps.Koin.core)
                 implementation(Deps.Ktor.ktor)
                 implementation(Deps.Ktor.ktorLogging)
