@@ -139,3 +139,7 @@ object Deps {
         const val jsonSerial = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serial}"
     }
 }
+
+tasks.matching { it.name == "kspKotlinIosSimulatorArm64" }.configureEach {
+    dependsOn(tasks.getByName("generateMRiosSimulatorArm64Main"))
+}

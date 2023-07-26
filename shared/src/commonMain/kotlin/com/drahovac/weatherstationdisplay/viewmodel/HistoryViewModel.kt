@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
+import com.drahovac.weatherstationdisplay.MR
 import com.rickclephas.kmm.viewmodel.KMMViewModel
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,24 @@ class HistoryViewModel : KMMViewModel(), HistoryActions {
 
     override fun selectStartDate(date: LocalDate) {
         _state.update {
-            it.copy(noData = it.noData?.copy(startDate = date, isPickerVisible = false))
+            it.copy(
+                noData = it.noData?.copy(
+                    startDate = date,
+                    isPickerVisible = false,
+                    error = null
+                )
+            )
+        }
+    }
+
+    override fun downloadInitialHistory() {
+        _state.value.noData?.startDate?.also {
+            // fetch
+            println(it)
+        } ?: run {
+            _state.update {
+                it.copy(noData = it.noData?.copy(error = MR.strings.setup_must_not_be_empty.resourceId))
+            }
         }
     }
 }
@@ -33,4 +51,6 @@ interface HistoryActions {
     fun switchDateDialog()
 
     fun selectStartDate(date: LocalDate)
+
+    fun downloadInitialHistory()
 }

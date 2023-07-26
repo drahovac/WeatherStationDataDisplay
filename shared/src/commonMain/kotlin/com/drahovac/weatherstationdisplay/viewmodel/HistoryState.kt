@@ -8,5 +8,6 @@ data class HistoryState(
 
 data class HistoryNoData(
     val isPickerVisible: Boolean = false,
-    val startDate: LocalDate? = null
+    val startDate: LocalDate? = null,
+    val error: Int? = null,
 )

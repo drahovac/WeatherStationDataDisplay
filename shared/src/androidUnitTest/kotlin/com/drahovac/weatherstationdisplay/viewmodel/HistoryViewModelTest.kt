@@ -1,9 +1,11 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
+import com.drahovac.weatherstationdisplay.MR
 import kotlinx.datetime.LocalDate
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 internal class HistoryViewModelTest {
@@ -41,6 +43,22 @@ internal class HistoryViewModelTest {
         historyViewModel.selectStartDate(START_DATE)
 
         assertEquals(START_DATE, stateValue.noData!!.startDate)
+    }
+
+    @Test
+    fun `set error on download initial history if empty date`() {
+        historyViewModel.downloadInitialHistory()
+
+        assertEquals(MR.strings.setup_must_not_be_empty.resourceId, stateValue.noData!!.error)
+    }
+
+    @Test
+    fun `clear error on select date`() {
+        historyViewModel.downloadInitialHistory()
+
+        historyViewModel.selectStartDate(START_DATE)
+
+        assertNull(stateValue.noData!!.error)
     }
 
     private companion object {

@@ -44,6 +44,7 @@ import com.drahovac.weatherstationdisplay.viewmodel.HistoryState
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryViewModel
 import kotlinx.datetime.LocalDate
 import org.koin.androidx.compose.getViewModel
+import java.time.ZoneOffset
 
 @Composable
 fun HistoryScreen(viewModel: HistoryViewModel = getViewModel()) {
@@ -131,7 +132,7 @@ private fun ScreenContent(
         )
 
         Text(
-            text = "ERROR",
+            text = state.noData?.error?.let { stringResource(id = it) } ?: "",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.error,
         )
@@ -139,7 +140,7 @@ private fun ScreenContent(
         OutlinedButton(
             modifier = Modifier.padding(vertical = 16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            onClick = {}
+            onClick = actions::downloadInitialHistory,
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_file_download_24),
@@ -158,8 +159,9 @@ private fun DateDialog(
     actions: HistoryActions
 ) {
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = startDate?.toCurrentUTCMillis()
-    )
+        initialSelectedDateMillis = startDate?.toCurrentUTCMillis(),
+
+        )
 
     DatePickerDialog(onDismissRequest = actions::switchDateDialog,
         confirmButton = {
@@ -175,7 +177,10 @@ private fun DateDialog(
             }
         }) {
         DatePicker(
-            state = datePickerState
+            state = datePickerState,
+            dateValidator = { date ->
+                date <= java.time.LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+            }
         )
     }
 }
