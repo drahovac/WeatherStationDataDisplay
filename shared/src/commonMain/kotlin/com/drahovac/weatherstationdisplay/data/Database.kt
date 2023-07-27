@@ -15,57 +15,59 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 
-internal class Database(databaseDriverFactory: DatabaseDriver) {
+class Database(databaseDriverFactory: DatabaseDriver) {
     private val dbDriver = AppDatabase(databaseDriverFactory.createDriver())
     private val dbQuery = dbDriver.appDatabaseQueries
 
-    suspend fun insertHistoryObservations(observation: HistoryObservation) {
+    suspend fun insertHistoryObservations(observations: List<HistoryObservation>) {
         withContext(Dispatchers.IO) {
             dbQuery.transaction {
-                dbQuery.insertHistory(
-                    stationID = observation.stationID,
-                    tz = observation.tz,
-                    obsTimeUtc = observation.obsTimeUtc.toEpochMilliseconds(),
-                    obsTimeLocal = observation.obsTimeLocal.toString(),
-                    epoch = observation.epoch,
-                    lat = observation.lat,
-                    lon = observation.lon,
-                    solarRadiationHigh = observation.solarRadiationHigh,
-                    uvHigh = observation.uvHigh,
-                    winddirAvg = observation.winddirAvg,
-                    humidityHigh = observation.humidityHigh,
-                    humidityLow = observation.humidityLow,
-                    humidityAvg = observation.humidityAvg,
-                    qcStatus = observation.qcStatus.toLong(),
-                    metricTempHigh = observation.metric.tempHigh,
-                    metricTempLow = observation.metric.tempLow,
-                    metricTempAvg = observation.metric.tempAvg,
-                    metricWindspeedHigh = observation.metric.windspeedHigh,
-                    metricWindspeedLow = observation.metric.windspeedLow,
-                    metricWindspeedAvg = observation.metric.windspeedAvg,
-                    metricWindgustHigh = observation.metric.windgustHigh,
-                    metricWindgustLow = observation.metric.windgustLow,
-                    metricWindgustAvg = observation.metric.windgustAvg,
-                    metricDewpointHigh = observation.metric.dewptHigh,
-                    metricDewpointLow = observation.metric.dewptLow,
-                    metricDewpointAvg = observation.metric.dewptAvg,
-                    metricWindchillHigh = observation.metric.windchillHigh,
-                    metricWindchillLow = observation.metric.windchillLow,
-                    metricWindchillAvg = observation.metric.windchillAvg,
-                    metricHeatindexHigh = observation.metric.heatindexHigh,
-                    metricHeatindexLow = observation.metric.heatindexLow,
-                    metricHeatindexAvg = observation.metric.heatindexAvg,
-                    metricPressureMax = observation.metric.pressureMax,
-                    metricPressureMin = observation.metric.pressureMin,
-                    metricPressureTrend = observation.metric.pressureTrend,
-                    metricPrecipRate = observation.metric.precipRate,
-                    metricPrecipTotal = observation.metric.precipTotal,
-                )
+                observations.forEach { observation ->
+                    dbQuery.insertHistory(
+                        stationID = observation.stationID,
+                        tz = observation.tz,
+                        obsTimeUtc = observation.obsTimeUtc.toEpochMilliseconds(),
+                        obsTimeLocal = observation.obsTimeLocal.toString(),
+                        epoch = observation.epoch,
+                        lat = observation.lat,
+                        lon = observation.lon,
+                        solarRadiationHigh = observation.solarRadiationHigh,
+                        uvHigh = observation.uvHigh,
+                        winddirAvg = observation.winddirAvg,
+                        humidityHigh = observation.humidityHigh,
+                        humidityLow = observation.humidityLow,
+                        humidityAvg = observation.humidityAvg,
+                        qcStatus = observation.qcStatus.toLong(),
+                        metricTempHigh = observation.metric.tempHigh,
+                        metricTempLow = observation.metric.tempLow,
+                        metricTempAvg = observation.metric.tempAvg,
+                        metricWindspeedHigh = observation.metric.windspeedHigh,
+                        metricWindspeedLow = observation.metric.windspeedLow,
+                        metricWindspeedAvg = observation.metric.windspeedAvg,
+                        metricWindgustHigh = observation.metric.windgustHigh,
+                        metricWindgustLow = observation.metric.windgustLow,
+                        metricWindgustAvg = observation.metric.windgustAvg,
+                        metricDewpointHigh = observation.metric.dewptHigh,
+                        metricDewpointLow = observation.metric.dewptLow,
+                        metricDewpointAvg = observation.metric.dewptAvg,
+                        metricWindchillHigh = observation.metric.windchillHigh,
+                        metricWindchillLow = observation.metric.windchillLow,
+                        metricWindchillAvg = observation.metric.windchillAvg,
+                        metricHeatindexHigh = observation.metric.heatindexHigh,
+                        metricHeatindexLow = observation.metric.heatindexLow,
+                        metricHeatindexAvg = observation.metric.heatindexAvg,
+                        metricPressureMax = observation.metric.pressureMax,
+                        metricPressureMin = observation.metric.pressureMin,
+                        metricPressureTrend = observation.metric.pressureTrend,
+                        metricPrecipRate = observation.metric.precipRate,
+                        metricPrecipTotal = observation.metric.precipTotal,
+                    )
+                }
             }
         }
     }
 
-    suspend fun selectHistory(
+    fun selectHistory(
         startDate: LocalDate,
         endDate: LocalDate
     ): Flow<List<HistoryObservation>> {

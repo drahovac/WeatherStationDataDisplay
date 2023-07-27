@@ -60,7 +60,16 @@ fun HistoryScreen(viewModel: HistoryViewModel = getViewModel()) {
 
     when {
         state.isLoading -> ProgressIndicator()
-        state.noData != null -> NoHistoryScreenContent(state, viewModel)
+        state.noData != null && state.noData?.networkError == null -> NoHistoryScreenContent(
+            state,
+            viewModel
+        )
+
+        state.noData != null && state.noData?.networkError != null -> ErrorScreen(
+            error = state.noData!!.networkError!!,
+            onNewDeviceId = viewModel::onNewDeviceId,
+            onNewApiKey = viewModel::onNewApiKey,
+        )
     }
 }
 

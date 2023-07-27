@@ -1,12 +1,14 @@
 package com.drahovac.weatherstationdisplay.di
 
 import com.drahovac.weatherstationdisplay.data.CurrentWeatherDataRepositoryImpl
+import com.drahovac.weatherstationdisplay.data.Database
 import com.drahovac.weatherstationdisplay.data.DeviceCredentialsRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.HistoryWeatherDataRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.NetworkClient
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
+import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
@@ -23,13 +25,7 @@ import org.koin.dsl.module
 internal expect val platformModule: Module
 
 internal val sharedModule = module {
-    kmmViewModel { SetupDeviceIdViewModel(get()) }
-
-    kmmViewModel { SetupAipKeyViewModel(get()) }
-
-    kmmViewModel { CurrentWeatherViewModel(get(), get()) }
-
-    kmmViewModel { HistoryViewModel(get()) }
+    factory { HistoryUseCase(get(), get()) }
 
     single<DeviceCredentialsRepository> { DeviceCredentialsRepositoryImpl(get()) }
 
@@ -40,6 +36,16 @@ internal val sharedModule = module {
     single<CurrentWeatherDataRepository> { CurrentWeatherDataRepositoryImpl(get()) }
 
     single<HistoryWeatherDataRepository> { HistoryWeatherDataRepositoryImpl(get()) }
+
+    single { Database(get()) }
+
+    kmmViewModel { SetupDeviceIdViewModel(get()) }
+
+    kmmViewModel { SetupAipKeyViewModel(get()) }
+
+    kmmViewModel { CurrentWeatherViewModel(get(), get()) }
+
+    kmmViewModel { HistoryViewModel(get(), get()) }
 }
 
 internal expect inline fun <reified T : KMMViewModel> Module.kmmViewModel(

@@ -1,12 +1,20 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package com.drahovac.weatherstationdisplay.viewmodel
 
 import com.drahovac.weatherstationdisplay.MR
-import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
+import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
+import com.drahovac.weatherstationdisplay.domain.HistoryObservation
+import com.drahovac.weatherstationdisplay.domain.NetworkError
+import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
@@ -20,20 +28,24 @@ import kotlin.test.assertTrue
 internal class HistoryViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val historyWeatherDataRepository: HistoryWeatherDataRepository =
+    private val credentialsRepository: DeviceCredentialsRepository = mockk()
+    private val historyUseCase: HistoryUseCase =
         mockk(relaxUnitFun = true)
     private lateinit var historyViewModel: HistoryViewModel
+    private val historyFlow = MutableStateFlow(emptyList<HistoryObservation>())
     private val stateValue
         get() = historyViewModel.state.value
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
-        coEvery { historyWeatherDataRepository.fetchHistory(START_DATE) } returns Result.success(
-            emptyList()
+        coEvery { historyUseCase.fetchHistory(START_DATE) } returns Result.success(
+            Result.success("")
         )
+        every { historyUseCase.history } returns historyFlow
         Dispatchers.setMain(testDispatcher)
-        historyViewModel = HistoryViewModel(historyWeatherDataRepository)
+        historyViewModel = HistoryViewModel(historyUseCase, credentialsRepository)
+        testDispatcher.scheduler.advanceTimeBy(1) // set empty history state
     }
 
     @Test
@@ -82,7 +94,7 @@ internal class HistoryViewModelTest {
         historyViewModel.downloadInitialHistory()
         testDispatcher.scheduler.advanceTimeBy(1)
 
-        coVerify { historyWeatherDataRepository.fetchHistory(START_DATE) }
+        coVerify { historyUseCase.fetchHistory(START_DATE) }
         assertFalse { stateValue.isLoading }
     }
 
@@ -102,6 +114,26 @@ internal class HistoryViewModelTest {
         historyViewModel.selectStartDate(START_DATE)
 
         assertNull(stateValue.noData!!.error)
+    }
+
+    @Test
+    fun `remove no data when history not empty`() {
+        historyFlow.update { listOf(mockk()) }
+        testDispatcher.scheduler.advanceTimeBy(1)
+
+        assertNull(stateValue.noData)
+    }
+
+    @Test
+    fun `set network error on data download error`() {
+        coEvery { historyUseCase.fetchHistory(START_DATE) } returns Result.failure(
+            NetworkError.InvalidApiKey
+        )
+        historyViewModel.selectStartDate(START_DATE)
+        historyViewModel.downloadInitialHistory()
+        testDispatcher.scheduler.advanceTimeBy(1)
+
+        assertEquals(NetworkError.InvalidApiKey, stateValue.noData!!.networkError)
     }
 
     private companion object {
