@@ -58,11 +58,14 @@ fun HistoryScreen(viewModel: HistoryViewModel = getViewModel()) {
         )
     }
 
-    ScreenContent(state, viewModel)
+    when {
+        state.isLoading -> ProgressIndicator()
+        state.noData != null -> NoHistoryScreenContent(state, viewModel)
+    }
 }
 
 @Composable
-private fun ScreenContent(
+private fun NoHistoryScreenContent(
     state: HistoryState,
     actions: HistoryActions
 ) {
@@ -196,7 +199,7 @@ private fun DateDialog(
 @Composable
 fun HistoryScreenPreview() {
     WeatherTheme {
-        ScreenContent(
+        NoHistoryScreenContent(
             state = HistoryState(),
             actions = ActionsInvocationHandler.createActionsProxy()
         )

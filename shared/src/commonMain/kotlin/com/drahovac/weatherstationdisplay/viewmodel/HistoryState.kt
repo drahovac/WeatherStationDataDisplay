@@ -4,7 +4,8 @@ import dev.icerock.moko.resources.StringResource
 import kotlinx.datetime.LocalDate
 
 data class HistoryState(
-    val noData: HistoryNoData? = null
+    val noData: HistoryNoData? = null,
+    val isLoading: Boolean = false,
 )
 
 data class HistoryNoData(

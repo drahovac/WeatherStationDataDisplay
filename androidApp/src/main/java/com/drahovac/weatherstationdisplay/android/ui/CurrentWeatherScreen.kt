@@ -95,13 +95,6 @@ fun CurrentWeatherScreen(
 }
 
 @Composable
-fun ProgressIndicator() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        LinearProgressIndicator(modifier = Modifier.align(Center))
-    }
-}
-
-@Composable
 private fun ScreenContent(
     state: CurrentWeatherObservation
 ) {

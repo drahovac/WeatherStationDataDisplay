@@ -40,11 +40,13 @@ class HistoryViewModel(
     }
 
     override fun downloadInitialHistory() {
-        _state.value.noData?.startDate?.also {
+        _state.value.noData?.startDate?.also { date ->
+            _state.update { it.copy(isLoading = true) }
             viewModelScope.coroutineScope.launch {
-                historyWeatherDataRepository.fetchHistory(it).let {
+                historyWeatherDataRepository.fetchHistory(date).let {
                     println("vaclav $it")
                 }
+                _state.update { it.copy(isLoading = false) }
             }
         } ?: run {
             _state.update {
