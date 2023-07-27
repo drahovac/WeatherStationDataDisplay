@@ -88,7 +88,7 @@ fun BaseSetupScreen(
 
             state.error?.let {
                 Text(
-                    text = stringResource(id = it),
+                    text = stringResource(id = it.resourceId),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error,
                 )

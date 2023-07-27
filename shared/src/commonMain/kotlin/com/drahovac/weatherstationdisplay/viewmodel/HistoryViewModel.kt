@@ -1,14 +1,19 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
 import com.drahovac.weatherstationdisplay.MR
+import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
 import com.rickclephas.kmm.viewmodel.KMMViewModel
+import com.rickclephas.kmm.viewmodel.coroutineScope
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
-class HistoryViewModel : KMMViewModel(), HistoryActions {
+class HistoryViewModel(
+    private val historyWeatherDataRepository: HistoryWeatherDataRepository
+) : KMMViewModel(), HistoryActions {
 
     private val _state = MutableStateFlow(HistoryState(HistoryNoData()))
 
@@ -36,8 +41,11 @@ class HistoryViewModel : KMMViewModel(), HistoryActions {
 
     override fun downloadInitialHistory() {
         _state.value.noData?.startDate?.also {
-            // fetch
-            println(it)
+            viewModelScope.coroutineScope.launch {
+                historyWeatherDataRepository.fetchHistory(it).let {
+                    println("vaclav $it")
+                }
+            }
         } ?: run {
             _state.update {
                 it.copy(noData = it.noData?.copy(error = MR.strings.setup_must_not_be_empty))

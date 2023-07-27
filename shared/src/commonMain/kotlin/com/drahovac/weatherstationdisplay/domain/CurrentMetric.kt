@@ -3,7 +3,7 @@ package com.drahovac.weatherstationdisplay.domain
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Metric(
+data class CurrentMetric(
     val temp: Double,
     val heatIndex: Double,
     val dewpt: Double,

@@ -4,7 +4,7 @@ import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
 import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
-import com.drahovac.weatherstationdisplay.domain.Metric
+import com.drahovac.weatherstationdisplay.domain.CurrentMetric
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -101,7 +101,7 @@ internal class CurrentWeatherViewModelTest {
             winddir = 123,
             humidity = 65.78,
             qcStatus = 1,
-            metric = Metric(
+            metric = CurrentMetric(
                 temp = 23.45,
                 heatIndex = 25.67,
                 dewpt = 12.34,

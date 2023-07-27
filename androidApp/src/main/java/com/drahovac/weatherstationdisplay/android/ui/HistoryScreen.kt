@@ -132,7 +132,7 @@ private fun ScreenContent(
         )
 
         Text(
-            text = state.noData?.error?.let { stringResource(id = it) } ?: "",
+            text = state.noData?.error?.let { stringResource(id = it.resourceId) } ?: "",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.error,
         )
@@ -177,9 +177,11 @@ private fun DateDialog(
                 Text(text = stringResource(id = MR.strings.history_start_select.resourceId))
             }
         }) {
-        Column(Modifier
-            .padding(horizontal = 8.dp)
-            .verticalScroll(rememberScrollState())) {
+        Column(
+            Modifier
+                .padding(horizontal = 8.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             DatePicker(
                 state = datePickerState,
                 dateValidator = { date ->

@@ -2,9 +2,11 @@ package com.drahovac.weatherstationdisplay.di
 
 import com.drahovac.weatherstationdisplay.data.CurrentWeatherDataRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.DeviceCredentialsRepositoryImpl
+import com.drahovac.weatherstationdisplay.data.HistoryWeatherDataRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.NetworkClient
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
+import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
@@ -27,15 +29,17 @@ internal val sharedModule = module {
 
     kmmViewModel { CurrentWeatherViewModel(get(), get()) }
 
-    kmmViewModel { HistoryViewModel() }
+    kmmViewModel { HistoryViewModel(get()) }
 
     single<DeviceCredentialsRepository> { DeviceCredentialsRepositoryImpl(get()) }
 
     factory { InitialDestinationViewModel(get()) }
 
-    single { NetworkClient() }
+    single { NetworkClient(get()) }
 
-    single<CurrentWeatherDataRepository> { CurrentWeatherDataRepositoryImpl(get(), get()) }
+    single<CurrentWeatherDataRepository> { CurrentWeatherDataRepositoryImpl(get()) }
+
+    single<HistoryWeatherDataRepository> { HistoryWeatherDataRepositoryImpl(get()) }
 }
 
 internal expect inline fun <reified T : KMMViewModel> Module.kmmViewModel(

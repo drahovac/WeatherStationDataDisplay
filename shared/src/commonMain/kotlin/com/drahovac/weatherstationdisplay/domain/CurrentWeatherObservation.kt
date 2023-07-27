@@ -19,5 +19,5 @@ data class CurrentWeatherObservation(
     val winddir: Int,
     val humidity: Double,
     val qcStatus: Int,
-    val metric: Metric
+    val metric: CurrentMetric
 )

@@ -57,7 +57,7 @@ import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
-import com.drahovac.weatherstationdisplay.domain.Metric
+import com.drahovac.weatherstationdisplay.domain.CurrentMetric
 import com.drahovac.weatherstationdisplay.domain.NetworkError
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
 import org.koin.androidx.compose.getViewModel
@@ -618,7 +618,7 @@ fun CurrentWeatherScreenPreview() {
                 winddir = 123,
                 humidity = 65.78,
                 qcStatus = 1,
-                metric = Metric(
+                metric = CurrentMetric(
                     temp = 23.45,
                     heatIndex = 25.67,
                     dewpt = 12.34,

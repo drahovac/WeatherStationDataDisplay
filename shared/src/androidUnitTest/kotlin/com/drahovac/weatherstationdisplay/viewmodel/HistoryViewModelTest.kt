@@ -1,6 +1,8 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
 import com.drahovac.weatherstationdisplay.MR
+import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
+import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -10,7 +12,9 @@ import kotlin.test.assertTrue
 
 internal class HistoryViewModelTest {
 
-    private val historyViewModel: HistoryViewModel = HistoryViewModel()
+    private val historyWeatherDataRepository: HistoryWeatherDataRepository =
+        mockk(relaxUnitFun = true)
+    private val historyViewModel: HistoryViewModel = HistoryViewModel(historyWeatherDataRepository)
     private val stateValue
         get() = historyViewModel.state.value
 

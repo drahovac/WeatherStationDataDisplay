@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.di
 
+import com.drahovac.weatherstationdisplay.data.DatabaseDriver
 import com.rickclephas.kmm.viewmodel.KMMViewModel
 import com.russhwolf.settings.ExperimentalSettingsImplementation
 import com.russhwolf.settings.Settings
@@ -22,4 +23,6 @@ actual val platformModule: Module = module {
             service = "MyEncryptedSettings"
         )
     }
+
+    single { DatabaseDriver() }
 }

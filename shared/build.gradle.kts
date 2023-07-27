@@ -1,3 +1,5 @@
+import Build_gradle.Versions.sqlDelightVersion
+
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
@@ -30,6 +32,12 @@ kotlin {
         }
     }
 
+    sqldelight {
+        database("AppDatabase") {
+            packageName = "com.drahovac.weatherstationdisplay"
+        }
+    }
+
     sourceSets.all {
         languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
     }
@@ -51,6 +59,8 @@ kotlin {
                 api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-8")
                 implementation("com.russhwolf:multiplatform-settings:1.0.0")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+                implementation("com.squareup.sqldelight:runtime:$sqlDelightVersion")
+                implementation("com.squareup.sqldelight:coroutines-extensions:$sqlDelightVersion")
                 implementation(Deps.Koin.core)
                 implementation(Deps.Ktor.ktor)
                 implementation(Deps.Ktor.ktorLogging)
@@ -70,6 +80,7 @@ kotlin {
                 api(Deps.Koin.compose)
                 implementation("androidx.security:security-crypto:1.1.0-alpha06")
                 implementation(Deps.Ktor.ktorAndroidEngine)
+                implementation("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
             }
         }
         val androidUnitTest by getting {
@@ -88,6 +99,7 @@ kotlin {
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
                 implementation(Deps.Ktor.ktorIOSEngine)
+                implementation("com.squareup.sqldelight:native-driver:$sqlDelightVersion")
             }
         }
         val iosX64Test by getting

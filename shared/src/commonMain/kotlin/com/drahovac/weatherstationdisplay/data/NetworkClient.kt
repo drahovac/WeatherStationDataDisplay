@@ -1,22 +1,32 @@
 package com.drahovac.weatherstationdisplay.data
 
+import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
+import com.drahovac.weatherstationdisplay.domain.NetworkError
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
+import io.ktor.serialization.JsonConvertException
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.util.reflect.TypeInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
-class NetworkClient {
-
+class NetworkClient(
+    private val deviceCredentialsRepository: DeviceCredentialsRepository
+) {
     private val client = HttpClient { clientConfiguration() }
 
     suspend fun <T> request(
@@ -24,19 +34,39 @@ class NetworkClient {
         params: Map<String, String>,
         typeInfo: TypeInfo
     ): Result<T> {
-        val dto = client.get {
-            url {
-                protocol = URLProtocol.HTTPS
-                host = "api.weather.com"
-                path(path)
-                params.forEach {
-                    parameters.append(it.key, it.value)
+        return withContext(Dispatchers.IO) {
+            val deviceId = deviceCredentialsRepository.getDeviceId()
+            val apiKey = deviceCredentialsRepository.getApiKey()
+            val securedParams = mutableMapOf(
+                "stationId" to deviceId.orEmpty(),
+                "apiKey" to apiKey.orEmpty(),
+            ).apply {
+                putAll(params)
+            }
+
+            return@withContext when {
+                deviceId == null -> Result.failure(NetworkError.InvalidDeviceId)
+                apiKey == null -> Result.failure(NetworkError.InvalidApiKey)
+                else -> {
+                    runCatching {
+                        Result.success(client.get {
+                            url {
+                                protocol = URLProtocol.HTTPS
+                                host = "api.weather.com"
+                                path(path)
+                                securedParams.forEach {
+                                    parameters.append(it.key, it.value)
+                                }
+                            }
+                        }.call.let {
+                            it.body(typeInfo) as T
+                        })
+                    }.getOrElse { error ->
+                        getNetworkError(error)
+                    }
                 }
             }
-        }.call.let {
-            it.body(typeInfo) as T
         }
-        return Result.success(dto)
     }
 
     private fun HttpClientConfig<*>.clientConfiguration() {
@@ -67,6 +97,24 @@ class NetworkClient {
             prettyPrint = true
             isLenient = true
             ignoreUnknownKeys = true
+        }
+
+        suspend fun <T> getNetworkError(error: Throwable): Result<T> = when (error) {
+            is ClientRequestException -> Result.failure(error.parseErrorBody())
+            is JsonConvertException -> Result.failure(NetworkError.InvalidDeviceId)
+            else -> Result.failure(NetworkError.General(error))
+        }
+
+        private suspend fun ClientRequestException.parseErrorBody(): NetworkError {
+            return runCatching {
+                this.response.bodyAsText().let {
+                    com.drahovac.weatherstationdisplay.data.json.decodeFromString<ErrorResponse>(
+                        it
+                    )
+                }.getNetworkError()
+            }.getOrElse {
+                return NetworkError.General(this)
+            }
         }
     }
 }
