@@ -35,16 +35,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
-import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.fromUTCEpochMillis
-
 import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillis
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryActions
-import com.drahovac.weatherstationdisplay.viewmodel.HistoryState
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryInitViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryState
 import kotlinx.datetime.LocalDate
 import org.koin.androidx.compose.getViewModel
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @Composable
@@ -202,12 +201,18 @@ private fun DateDialog(
             DatePicker(
                 state = datePickerState,
                 dateValidator = { date ->
-                    date <= java.time.LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                    calendarDateRange(date)
                 }
             )
         }
     }
 }
+
+private fun calendarDateRange(date: Long) = date <= LocalDateTime.now().toInstant(ZoneOffset.UTC)
+    .toEpochMilli() &&
+        date >= LocalDateTime.now().minusMonths(1).toInstant(
+    ZoneOffset.UTC
+).toEpochMilli()
 
 @Preview
 @Composable
