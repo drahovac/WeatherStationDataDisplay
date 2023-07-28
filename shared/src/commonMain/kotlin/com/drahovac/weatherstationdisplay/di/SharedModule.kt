@@ -10,7 +10,8 @@ import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
 import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
-import com.drahovac.weatherstationdisplay.viewmodel.HistoryViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryInitViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.SetupAipKeyViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.SetupDeviceIdViewModel
@@ -45,7 +46,9 @@ internal val sharedModule = module {
 
     kmmViewModel { CurrentWeatherViewModel(get(), get()) }
 
-    kmmViewModel { HistoryViewModel(get(), get()) }
+    kmmViewModel { HistoryInitViewModel(get(), get()) }
+
+    kmmViewModel { HistoryDataViewModel(get()) }
 }
 
 internal expect inline fun <reified T : KMMViewModel> Module.kmmViewModel(

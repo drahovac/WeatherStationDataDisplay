@@ -41,7 +41,7 @@ CREATE TABLE weather_data (
 
 
 insertHistory:
-INSERT INTO weather_data (
+INSERT OR REPLACE INTO weather_data (
     station_id,
     tz,
     obs_time_utc,
@@ -78,8 +78,7 @@ INSERT INTO weather_data (
     metric_pressure_min,
     metric_pressure_trend,
     metric_precip_rate,
-    metric_precip_total
-) VALUES (
+    metric_precip_total) VALUES (
     :stationID,
     :tz,
     :obsTimeUtc,
@@ -116,10 +115,28 @@ INSERT INTO weather_data (
     :metricPressureMin,
     :metricPressureTrend,
     :metricPrecipRate,
-    :metricPrecipTotal
-);
+    :metricPrecipTotal);
 
 selectHistoryByDate:
 SELECT *
 FROM weather_data
-WHERE obs_time_utc BETWEEN ? AND ?;
+WHERE obs_time_utc BETWEEN :startDate AND :endDate
+ORDER BY obs_time_utc DESC;
+
+selectHistoryByLimit:
+SELECT *
+FROM weather_data
+ORDER BY obs_time_utc DESC
+LIMIT :rowNumbers;
+
+hasData:
+SELECT EXISTS(
+    SELECT 1
+    FROM weather_data
+);
+
+newestHistoryDate:
+SELECT obs_time_utc
+FROM weather_data
+ORDER BY obs_time_utc DESC
+LIMIT 1;

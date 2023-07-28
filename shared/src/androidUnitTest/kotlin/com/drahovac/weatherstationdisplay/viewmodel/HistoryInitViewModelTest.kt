@@ -25,14 +25,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-internal class HistoryViewModelTest {
+internal class HistoryInitViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val credentialsRepository: DeviceCredentialsRepository = mockk()
     private val historyUseCase: HistoryUseCase =
         mockk(relaxUnitFun = true)
-    private lateinit var historyViewModel: HistoryViewModel
+    private lateinit var historyViewModel: HistoryInitViewModel
     private val historyFlow = MutableStateFlow(emptyList<HistoryObservation>())
+    private val hasDataFlow = MutableStateFlow(false)
     private val stateValue
         get() = historyViewModel.state.value
 
@@ -43,8 +44,9 @@ internal class HistoryViewModelTest {
             Result.success("")
         )
         every { historyUseCase.history } returns historyFlow
+        every { historyUseCase.hasData } returns hasDataFlow
         Dispatchers.setMain(testDispatcher)
-        historyViewModel = HistoryViewModel(historyUseCase, credentialsRepository)
+        historyViewModel = HistoryInitViewModel(historyUseCase, credentialsRepository)
         testDispatcher.scheduler.advanceTimeBy(1) // set empty history state
     }
 
@@ -117,8 +119,8 @@ internal class HistoryViewModelTest {
     }
 
     @Test
-    fun `remove no data when history not empty`() {
-        historyFlow.update { listOf(mockk()) }
+    fun `remove no data when history data present`() {
+        hasDataFlow.update { true }
         testDispatcher.scheduler.advanceTimeBy(1)
 
         assertNull(stateValue.noData)
@@ -138,5 +140,6 @@ internal class HistoryViewModelTest {
 
     private companion object {
         val START_DATE = LocalDate.parse("2023-01-01")
+        val HISTORY = mockk<HistoryObservation>()
     }
 }

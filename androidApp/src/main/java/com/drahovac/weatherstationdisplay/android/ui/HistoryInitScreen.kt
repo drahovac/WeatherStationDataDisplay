@@ -35,19 +35,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
+import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.fromUTCEpochMillis
 
 import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillis
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryActions
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryState
-import com.drahovac.weatherstationdisplay.viewmodel.HistoryViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryInitViewModel
 import kotlinx.datetime.LocalDate
 import org.koin.androidx.compose.getViewModel
 import java.time.ZoneOffset
 
 @Composable
-fun HistoryScreen(viewModel: HistoryViewModel = getViewModel()) {
+fun HistoryInitScreen(viewModel: HistoryInitViewModel = getViewModel()) {
 
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -70,6 +71,10 @@ fun HistoryScreen(viewModel: HistoryViewModel = getViewModel()) {
             onNewDeviceId = viewModel::onNewDeviceId,
             onNewApiKey = viewModel::onNewApiKey,
         )
+
+        else -> {
+            HistoryDataScreen()
+        }
     }
 }
 

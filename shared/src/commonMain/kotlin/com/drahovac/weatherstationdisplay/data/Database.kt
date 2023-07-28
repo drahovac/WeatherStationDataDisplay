@@ -4,9 +4,9 @@ import com.drahovac.weatherstationdisplay.AppDatabase
 import com.drahovac.weatherstationdisplay.Weather_data
 import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
-import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillis
+import com.drahovac.weatherstationdisplay.domain.fromUTCEpochMillis
+import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillisEndOFDay
 import com.squareup.sqldelight.runtime.coroutines.asFlow
-import com.squareup.sqldelight.runtime.coroutines.mapToList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
@@ -67,15 +67,39 @@ class Database(databaseDriverFactory: DatabaseDriver) {
         }
     }
 
-    fun selectHistory(
+    suspend fun selectHistory(
         startDate: LocalDate,
         endDate: LocalDate
-    ): Flow<List<HistoryObservation>> {
-        return dbQuery.selectHistoryByDate(
-            startDate.toCurrentUTCMillis(),
-            endDate.toCurrentUTCMillis()
-        ).asFlow().mapToList().map { list ->
-            list.map { it.toDomain() }
+    ): List<HistoryObservation> {
+        return withContext(Dispatchers.IO) {
+            dbQuery.selectHistoryByDate(
+                startDate = startDate.toCurrentUTCMillisEndOFDay(),
+                endDate = endDate.toCurrentUTCMillisEndOFDay()
+            ).executeAsList().map {
+                it.toDomain()
+            }
+        }
+    }
+
+    suspend fun selectHistory(
+        itemCount: Int,
+    ): List<HistoryObservation> {
+        return withContext(Dispatchers.IO) {
+            dbQuery.selectHistoryByLimit(itemCount.toLong()).executeAsList().map {
+                it.toDomain()
+            }
+        }
+    }
+
+    fun hasData(): Flow<Boolean> {
+        return dbQuery.hasData().asFlow().map { it.executeAsOne() }
+    }
+
+    suspend fun selectNewestHistoryDate(): LocalDate? {
+        return withContext(Dispatchers.IO) {
+            dbQuery.newestHistoryDate().executeAsOneOrNull()?.let {
+                LocalDate.fromUTCEpochMillis(it)
+            }
         }
     }
 }

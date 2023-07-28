@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
-class HistoryViewModel(
+class HistoryInitViewModel(
     private val historyUseCase: HistoryUseCase,
     credentialsRepository: DeviceCredentialsRepository
 ) : SecuredNavigationViewModel(credentialsRepository), HistoryActions {
@@ -25,10 +25,10 @@ class HistoryViewModel(
 
     init {
         viewModelScope.coroutineScope.launch {
-            historyUseCase.history.collectLatest { observations ->
+            historyUseCase.hasData.collectLatest { hasData ->
                 _state.update {
                     it.copy(
-                        noData = if (observations.isEmpty()) HistoryNoData() else null,
+                        noData = if (hasData) null else HistoryNoData(),
                         isLoading = false
                     )
                 }
