@@ -29,10 +29,8 @@ internal class HistoryInitViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val credentialsRepository: DeviceCredentialsRepository = mockk()
-    private val historyUseCase: HistoryUseCase =
-        mockk(relaxUnitFun = true)
+    private val historyUseCase: HistoryUseCase = mockk(relaxUnitFun = true)
     private lateinit var historyViewModel: HistoryInitViewModel
-    private val historyFlow = MutableStateFlow(emptyList<HistoryObservation>())
     private val hasDataFlow = MutableStateFlow(false)
     private val stateValue
         get() = historyViewModel.state.value
@@ -43,8 +41,8 @@ internal class HistoryInitViewModelTest {
         coEvery { historyUseCase.fetchHistory(START_DATE) } returns Result.success(
             Result.success("")
         )
-        every { historyUseCase.history } returns historyFlow
         every { historyUseCase.hasData } returns hasDataFlow
+        coEvery { historyUseCase.fetchHistoryUpToDate() } returns Unit
         Dispatchers.setMain(testDispatcher)
         historyViewModel = HistoryInitViewModel(historyUseCase, credentialsRepository)
         testDispatcher.scheduler.advanceTimeBy(1) // set empty history state

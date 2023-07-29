@@ -27,7 +27,7 @@ class Database(databaseDriverFactory: DatabaseDriver) {
                         stationID = observation.stationID,
                         tz = observation.tz,
                         obsTimeUtc = observation.obsTimeUtc.toEpochMilliseconds(),
-                        obsTimeLocal = observation.obsTimeLocal.toString(),
+                        obsTimeLocal = observation.dateTimeLocal.toString(),
                         epoch = observation.epoch,
                         lat = observation.lat,
                         lon = observation.lon,

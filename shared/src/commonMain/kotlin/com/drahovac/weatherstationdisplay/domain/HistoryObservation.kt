@@ -9,7 +9,7 @@ data class HistoryObservation(
     val stationID: String,
     val tz: String,
     val obsTimeUtc: Instant,
-    val obsTimeLocal: String,
+    private val obsTimeLocal: String,
     val epoch: Long,
     val lat: Double,
     val lon: Double,
@@ -21,4 +21,8 @@ data class HistoryObservation(
     val humidityAvg: Double,
     val qcStatus: Int,
     val metric: HistoryMetric
-)
+) {
+    val dateTimeLocal: LocalDateTime
+        // BE format with space, datetime x cannot parse...
+        get() = LocalDateTime.parse(obsTimeLocal.replace(" ", "T"))
+}

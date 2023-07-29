@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.FabPosition
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
@@ -21,6 +21,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +41,7 @@ import com.drahovac.weatherstationdisplay.android.ui.SetupDeviceIdScreen
 import com.drahovac.weatherstationdisplay.android.ui.popCurrent
 import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -105,9 +107,16 @@ private fun MainContent(
     nextDestination: Destination?,
     navController: NavHostController
 ) {
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setStatusBarColor(
+        if (navController.currentBackStackEntryAsState().value?.destination?.route == Destination.History.route()) {
+            MaterialTheme.colorScheme.surface
+        } else Color.Transparent
+    )
+
     nextDestination?.let { dest ->
         NavHost(
-            modifier = Modifier.safeDrawingPadding(),
+            modifier = Modifier.statusBarsPadding(),
             navController = navController,
             startDestination = dest.route()
         ) {

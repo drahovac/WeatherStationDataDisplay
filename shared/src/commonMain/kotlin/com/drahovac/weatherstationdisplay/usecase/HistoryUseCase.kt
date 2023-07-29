@@ -1,11 +1,7 @@
 package com.drahovac.weatherstationdisplay.usecase
 
 import com.drahovac.weatherstationdisplay.data.Database
-import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -20,10 +16,9 @@ class HistoryUseCase(
 ) {
 
     val hasData = database.hasData()
-    private val _history: MutableStateFlow<List<HistoryObservation>> = MutableStateFlow(emptyList())
-    val history = _history.asStateFlow()
 
     suspend fun fetchHistory(startDate: LocalDate): Result<Any> {
+        // TODO split by months - max 1 month per request
         return historyWeatherDataRepository.fetchHistory(startDate).also {
             it.getOrNull()?.let { data ->
                 database.insertHistoryObservations(data)
@@ -34,12 +29,21 @@ class HistoryUseCase(
     suspend fun fetchHistoryUpToDate() {
         database.selectNewestHistoryDate()?.let {
             fetchHistory(it)
-            _history.update { initialWeekHistory() }
         }
     }
 
-    private suspend fun initialWeekHistory() = database.selectHistory(
+    suspend fun getWeekHistory() = database.selectHistory(
         clock.now().toLocalDateTime(TimeZone.UTC).date.minus(7, DateTimeUnit.DAY),
+        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
+    )
+
+    suspend fun getMonthHistory() = database.selectHistory(
+        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.MONTH),
+        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
+    )
+
+    suspend fun getYesterdayHistory() = database.selectHistory(
+        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(2, DateTimeUnit.DAY),
         clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
     )
 }

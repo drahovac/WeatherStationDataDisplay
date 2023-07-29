@@ -68,4 +68,10 @@
     <string name="history_start_date">Počáteční datum</string>
     <string name="history_start_download">Stáhnout</string>
     <string name="history_start_select">Vybrat</string>
+    <string name="history_tab_yesterday">Včera</string>
+    <string name="history_tab_week">7 dní</string>
+    <string name="history_tab_month">Měsíc</string>
+    <string name="history_max_temperature">Max teplota</string>
+    <string name="history_min_temperature">Min teplota</string>
+    <string name="history_min_on">dne</string>
 </resources>

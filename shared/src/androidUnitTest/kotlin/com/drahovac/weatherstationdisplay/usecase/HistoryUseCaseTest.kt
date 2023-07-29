@@ -61,6 +61,12 @@ class HistoryUseCaseTest {
         coVerify { historyWeatherDataRepository.fetchHistory(LOCAL_DATE) }
         scheduler.advanceTimeBy(1)
         coVerify { database.insertHistoryObservations(listOf(HISTORY)) }
+    }
+
+    @Test
+    fun `return week history`() = runTest(scheduler) {
+        historyUseCase.getWeekHistory()
+
         coVerify { database.selectHistory(WEEK_BEFORE_TODAY, YESTERDAY) }
     }
 
