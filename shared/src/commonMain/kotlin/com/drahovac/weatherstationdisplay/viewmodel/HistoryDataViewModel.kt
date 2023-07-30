@@ -5,12 +5,16 @@ import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
 import com.rickclephas.kmm.viewmodel.KMMViewModel
 import com.rickclephas.kmm.viewmodel.coroutineScope
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HistoryDataViewModel(
     private val historyUseCase: HistoryUseCase,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : KMMViewModel(), HistoryDataActions {
 
     private val _state = MutableStateFlow(
@@ -56,23 +60,34 @@ class HistoryDataViewModel(
     }
 
     private suspend fun fetchTabData(tab: HistoryDataTab): HistoryTabData? {
-        return when (tab) {
-            HistoryDataTab.YESTERDAY -> historyUseCase.getYesterdayHistory()
-            HistoryDataTab.WEEK -> historyUseCase.getWeekHistory()
-            HistoryDataTab.MONTH -> historyUseCase.getMonthHistory()
-        }.toTabData()
+        return withContext(defaultDispatcher) {
+            when (tab) {
+                HistoryDataTab.YESTERDAY -> historyUseCase.getYesterdayHistory()
+                HistoryDataTab.WEEK -> historyUseCase.getWeekHistory()
+                HistoryDataTab.MONTH -> historyUseCase.getMonthHistory()
+            }.toTabData()
+        }
     }
 }
 
-private fun List<HistoryObservation>.toTabData(): HistoryTabData? {
+fun List<HistoryObservation>.toTabData(): HistoryTabData? {
     if (isEmpty()) return null
     val minTemperature = minBy { it.metric.tempLow }
     val maxTemperature = maxBy { it.metric.tempHigh }
+    val maxTemperatures = map { it.dateTimeLocal.date to it.metric.tempHigh }
+    val avgTemperatures = map { it.dateTimeLocal.date to it.metric.tempAvg }
+    val minTemperatures = map { it.dateTimeLocal.date to it.metric.tempLow }
+    val tempChartModel = listOf(
+        maxTemperatures,
+        avgTemperatures,
+        minTemperatures
+    )
     return HistoryTabData(
         maxTemperature = maxTemperature.metric.tempHigh,
         minTemperature = minTemperature.metric.tempLow,
         maxDate = maxTemperature.dateTimeLocal.date,
-        minDate = minTemperature.dateTimeLocal.date
+        minDate = minTemperature.dateTimeLocal.date,
+        tempChartModel = tempChartModel.toChartModel(),
     )
 }
 

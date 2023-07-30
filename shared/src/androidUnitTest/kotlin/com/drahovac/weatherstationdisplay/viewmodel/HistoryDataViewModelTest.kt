@@ -8,6 +8,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Before
@@ -27,7 +28,7 @@ class HistoryDataViewModelTest {
         coEvery { historyUseCase.getMonthHistory() } returns MONTH_HISTORY
         coEvery { historyUseCase.getYesterdayHistory() } returns YESTERDAY_HISTORY
         Dispatchers.setMain(dispatcher)
-        historyDataViewModel = HistoryDataViewModel(historyUseCase)
+        historyDataViewModel = HistoryDataViewModel(historyUseCase, UnconfinedTestDispatcher())
     }
 
     @Test
