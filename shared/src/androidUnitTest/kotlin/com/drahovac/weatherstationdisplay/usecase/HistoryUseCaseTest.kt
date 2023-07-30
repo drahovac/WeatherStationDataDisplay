@@ -5,6 +5,7 @@ import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifySequence
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,6 +62,36 @@ class HistoryUseCaseTest {
         coVerify { historyWeatherDataRepository.fetchHistory(LOCAL_DATE) }
         scheduler.advanceTimeBy(1)
         coVerify { database.insertHistoryObservations(listOf(HISTORY)) }
+    }
+
+    @Test
+    fun `fetch history and split request per month max`() = runTest(scheduler) {
+        val dateBefore3months = LocalDate.parse("2023-05-30")
+        val dateBefore2months = LocalDate.parse("2023-06-30")
+        val dateBeforeMonth = LocalDate.parse("2023-07-30")
+        coEvery { historyWeatherDataRepository.fetchHistory(any()) } returns Result.success(
+            listOf(HISTORY)
+        )
+        coEvery { historyWeatherDataRepository.fetchHistory(any(), any()) } returns Result.success(
+            listOf(HISTORY)
+        )
+
+        historyUseCase.fetchHistory(dateBefore3months)
+
+
+        coVerifySequence {
+            historyWeatherDataRepository.fetchHistory(
+                dateBefore3months,
+                dateBefore2months
+            )
+            historyWeatherDataRepository.fetchHistory(
+                dateBefore2months,
+                dateBeforeMonth
+            )
+            historyWeatherDataRepository.fetchHistory(
+                dateBeforeMonth
+            )
+        }
     }
 
     @Test

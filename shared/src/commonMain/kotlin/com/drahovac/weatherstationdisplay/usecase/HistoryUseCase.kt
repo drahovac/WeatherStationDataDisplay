@@ -2,11 +2,13 @@ package com.drahovac.weatherstationdisplay.usecase
 
 import com.drahovac.weatherstationdisplay.data.Database
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
+import com.drahovac.weatherstationdisplay.domain.toFormattedDate
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
 class HistoryUseCase(
@@ -18,13 +20,25 @@ class HistoryUseCase(
     val hasData = database.hasData()
 
     suspend fun fetchHistory(startDate: LocalDate): Result<Any> {
-        // TODO split by months - max 1 month per request
-        return historyWeatherDataRepository.fetchHistory(startDate).also {
-            it.getOrNull()?.let { data ->
-                database.insertHistoryObservations(data)
+        val dateNow = clock.now().toLocalDateTime(TimeZone.UTC).date
+        val startDates = mutableListOf(startDate)
+        while (startDates.last().plusMonth() <= dateNow) {
+            startDates.add(startDates.last().plus(1, DateTimeUnit.MONTH))
+        }
+
+        return runCatching {
+            startDates.mapIndexed { index, localDate ->
+                val endDate = startDates.getOrNull(index + 1)
+                println(localDate.toFormattedDate() + " " + endDate?.toFormattedDate())
+                val fetchRes = endDate?.let {
+                    historyWeatherDataRepository.fetchHistory(localDate, endDate)
+                } ?: run { historyWeatherDataRepository.fetchHistory(localDate) }
+                database.insertHistoryObservations(fetchRes.getOrThrow())
             }
         }
     }
+
+    private fun LocalDate.plusMonth() = plus(1, DateTimeUnit.MONTH)
 
     suspend fun fetchHistoryUpToDate() {
         database.selectNewestHistoryDate()?.let {

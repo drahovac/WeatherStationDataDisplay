@@ -209,10 +209,7 @@ private fun DateDialog(
 }
 
 private fun calendarDateRange(date: Long) = date <= LocalDateTime.now().toInstant(ZoneOffset.UTC)
-    .toEpochMilli() &&
-        date >= LocalDateTime.now().minusMonths(1).toInstant(
-    ZoneOffset.UTC
-).toEpochMilli()
+    .toEpochMilli()
 
 @Preview
 @Composable

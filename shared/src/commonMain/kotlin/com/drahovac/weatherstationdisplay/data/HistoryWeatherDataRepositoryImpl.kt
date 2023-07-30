@@ -13,6 +13,13 @@ class HistoryWeatherDataRepositoryImpl(
 ) : HistoryWeatherDataRepository {
 
     override suspend fun fetchHistory(startDate: LocalDate): Result<List<HistoryObservation>> {
+        return fetchHistory(startDate, Clock.System.now().toLocalDateTime(TimeZone.UTC).date)
+    }
+
+    override suspend fun fetchHistory(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Result<List<HistoryObservation>> {
         return networkClient.request<HistoryWeatherDto>(
             path = "v2/pws/history/daily",
             params = mapOf(
@@ -20,7 +27,7 @@ class HistoryWeatherDataRepositoryImpl(
                 "numericPrecision" to "decimal",
                 "format" to "json",
                 "startDate" to startDate.toServerString(),
-                "endDate" to Clock.System.now().toLocalDateTime(TimeZone.UTC).date.toServerString()
+                "endDate" to endDate.toServerString()
             ),
             typeInfo<HistoryWeatherDto>()
         ).map { it.observations }
