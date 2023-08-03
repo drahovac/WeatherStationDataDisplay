@@ -74,9 +74,9 @@ fun List<HistoryObservation>.toTabData(): HistoryTabData? {
     if (isEmpty()) return null
     val minTemperature = minBy { it.metric.tempLow }
     val maxTemperature = maxBy { it.metric.tempHigh }
-    val maxTemperatures = map { it.dateTimeLocal.date to it.metric.tempHigh }
-    val avgTemperatures = map { it.dateTimeLocal.date to it.metric.tempAvg }
-    val minTemperatures = map { it.dateTimeLocal.date to it.metric.tempLow }
+    val maxTemperatures = map { it.dateTimeLocal.date to it.metric.tempHigh }.sortedBy { it.first.toEpochDays() }
+    val avgTemperatures = map { it.dateTimeLocal.date to it.metric.tempAvg }.sortedBy { it.first.toEpochDays() }
+    val minTemperatures = map { it.dateTimeLocal.date to it.metric.tempLow }.sortedBy { it.first.toEpochDays() }
     val tempChartModel = listOf(
         maxTemperatures,
         avgTemperatures,

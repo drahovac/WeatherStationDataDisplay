@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
+import android.graphics.Typeface
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,9 +16,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.theme.rememberChartStyle
@@ -32,12 +35,24 @@ import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataTab
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryTabData
 import com.drahovac.weatherstationdisplay.viewmodel.toTabData
+import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
+import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
+import com.patrykandpatrick.vico.compose.component.lineComponent
+import com.patrykandpatrick.vico.compose.component.shapeComponent
+import com.patrykandpatrick.vico.compose.component.textComponent
+import com.patrykandpatrick.vico.compose.legend.legendItem
+import com.patrykandpatrick.vico.compose.legend.verticalLegend
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
+import com.patrykandpatrick.vico.compose.style.currentChartStyle
+import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
 import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
+import com.patrykandpatrick.vico.core.component.shape.Shapes
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -92,16 +107,60 @@ private fun TemperatureChart(state: HistoryDataState) {
             Chart(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
+                    .padding(end = 8.dp),
                 chart = lineChart(),
+                startAxis = startAxis(
+                    label = rememberStartAxisLabel(),
+                    horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
+                ),
+                bottomAxis = bottomAxis(
+                    label  = axisLabelComponent(horizontalPadding = 0.dp),
+                    titleComponent = textComponent(color = MaterialTheme.colorScheme.onPrimaryContainer),
+                    title = "Fuck",
+                    valueFormatter = { value, chartValue ->
+                        println("vaclav " + value)
+                        value.toString()
+                    },
+                    itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
+                ),
+                legend = rememberLegend(),
                 chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
                 autoScaleUp = AutoScaleUp.Full,
                 horizontalLayout = HorizontalLayout.FullWidth(),
-                model = tabData.tempChartModel
+                model = tabData.tempChartModel,
             )
         }
     }
 }
+
+@Composable
+private fun rememberStartAxisLabel() = axisLabelComponent(
+    color = MaterialTheme.colorScheme.onPrimaryContainer,
+    verticalPadding = 2.dp,
+    horizontalPadding = 2.dp,
+    verticalMargin = 2.dp,
+    horizontalMargin = 2.dp,
+    background = lineComponent(Color.Transparent),
+)
+
+
+@Composable
+private fun rememberLegend() = verticalLegend(
+    items = chartColors.mapIndexed { index, chartColor ->
+        legendItem(
+            icon = shapeComponent(Shapes.pillShape, chartColor),
+            label = textComponent(
+                color = currentChartStyle.axis.axisLabelColor,
+                textSize = 8.sp,
+                typeface = Typeface.MONOSPACE,
+            ),
+            labelText = "Legend",
+        )
+    },
+    iconSize = 4.dp,
+    iconPadding = 4.dp,
+    spacing = 4.dp,
+)
 
 @Composable
 private fun Overview(tabData: HistoryTabData?) {
@@ -199,4 +258,8 @@ fun HistoryDataScreenPreview() {
 
 private val chartColors
     @Composable
-    get() = listOf(MaterialTheme.colorScheme.error, MaterialTheme.colorScheme.primary)
+    get() = listOf(
+        MaterialTheme.colorScheme.error,
+        MaterialTheme.colorScheme.secondary,
+        MaterialTheme.colorScheme.primary,
+    )

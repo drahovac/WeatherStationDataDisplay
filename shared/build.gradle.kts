@@ -81,7 +81,7 @@ kotlin {
                 implementation("androidx.security:security-crypto:1.1.0-alpha06")
                 implementation(Deps.Ktor.ktorAndroidEngine)
                 implementation("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
-                api("com.patrykandpatrick.vico:compose-m3:1.7.3")
+                api("com.patrykandpatrick.vico:compose-m3:1.8.1")
             }
         }
         val androidUnitTest by getting {

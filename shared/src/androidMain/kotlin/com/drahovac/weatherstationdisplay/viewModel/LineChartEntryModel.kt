@@ -42,9 +42,12 @@ class LineChartEntryModel(
 
 actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(): ChartModel {
     val models = this.map {
-        LineChartEntryModel(it.map { pair ->
+        var firstDate = 0f
+        LineChartEntryModel(it.mapIndexed { index, pair ->
+            val date = pair.first.toEpochDays().toFloat()
+            if (firstDate == 0f) firstDate = date
             FloatEntry(
-                pair.first.toEpochDays().toFloat(),
+                date - firstDate,
                 pair.second.toFloat()
             )
         })

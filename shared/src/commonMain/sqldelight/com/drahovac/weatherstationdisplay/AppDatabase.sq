@@ -121,7 +121,7 @@ selectHistoryByDate:
 SELECT *
 FROM weather_data
 WHERE obs_time_utc BETWEEN :startDate AND :endDate
-ORDER BY obs_time_utc DESC;
+ORDER BY obs_time_utc ASC;
 
 selectHistoryByLimit:
 SELECT *
