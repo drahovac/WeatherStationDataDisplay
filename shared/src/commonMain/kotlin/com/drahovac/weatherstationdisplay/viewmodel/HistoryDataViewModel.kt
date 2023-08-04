@@ -33,7 +33,7 @@ class HistoryDataViewModel(
                     isLoading = false,
                     selectedTab = HistoryDataTab.WEEK,
                     tabData = mapOf(
-                        HistoryDataTab.WEEK to fetchTabData(HistoryDataTab.WEEK)
+                        HistoryDataTab.WEEK to fetchTabData(HistoryDataTab.WEEK, TempChartSets())
                     )
                 )
             }
@@ -45,52 +45,104 @@ class HistoryDataViewModel(
             it.copy(selectedTab = tab)
         }
         viewModelScope.coroutineScope.launch {
-            _state.update {
-                val tabData = it.tabData[tab] ?: fetchTabData(tab)
-                val tabMap = it.tabData.toMutableMap().apply {
+            _state.update { currentState ->
+                val tabData =
+                    currentState.tabData[tab] ?: fetchTabData(tab, TempChartSets())
+                val tabMap = currentState.tabData.toMutableMap().apply {
                     put(tab, tabData)
                 }
-                it.copy(
+                currentState.copy(
                     isLoading = false,
                     selectedTab = tab,
-                    tabData = tabMap
+                    tabData = tabMap,
                 )
             }
         }
     }
 
-    private suspend fun fetchTabData(tab: HistoryDataTab): HistoryTabData? {
+    override fun selectMaxTempChart(isSelected: Boolean) {
+        _state.update {
+            val tempChartSets = it.currentTabData?.tempChartSets?.copy(isMaxAllowed = isSelected)
+            val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMaxAllowed = isSelected))
+            it.copy(tabData = tabData)
+        }
+    }
+
+    private fun getTabData(
+        state: HistoryDataState,
+        tempChartSets: TempChartSets
+    ): MutableMap<HistoryDataTab, HistoryTabData?> {
+        return state.tabData.toMutableMap().apply {
+            val removed = remove(state.selectedTab)
+            put(state.selectedTab, removed?.observations?.toTabData(tempChartSets))
+        }
+    }
+
+    override fun selectMinTempChart(isSelected: Boolean) {
+        _state.update {
+            val tempChartSets = it.currentTabData?.tempChartSets?.copy(isMinAllowed = isSelected)
+            val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMinAllowed = isSelected))
+            it.copy(tabData = tabData)
+        }
+    }
+
+    override fun selectAvgTempChart(isSelected: Boolean) {
+        _state.update {
+            val tempChartSets = it.currentTabData?.tempChartSets?.copy(isAvgAllowed = isSelected)
+            val tabData = getTabData(it, tempChartSets ?: TempChartSets(isAvgAllowed = isSelected))
+            it.copy(tabData = tabData)
+        }
+    }
+
+    private suspend fun fetchTabData(
+        tab: HistoryDataTab,
+        tempChartSets: TempChartSets,
+    ): HistoryTabData? {
         return withContext(defaultDispatcher) {
             when (tab) {
                 HistoryDataTab.YESTERDAY -> historyUseCase.getYesterdayHistory()
                 HistoryDataTab.WEEK -> historyUseCase.getWeekHistory()
                 HistoryDataTab.MONTH -> historyUseCase.getMonthHistory()
-            }.toTabData()
-        }
+            }
+        }.toTabData(tempChartSets)
     }
 }
 
-fun List<HistoryObservation>.toTabData(): HistoryTabData? {
+fun List<HistoryObservation>.toTabData(
+    tempChartSets: TempChartSets,
+): HistoryTabData? {
     if (isEmpty()) return null
     val minTemperature = minBy { it.metric.tempLow }
     val maxTemperature = maxBy { it.metric.tempHigh }
-    val maxTemperatures = map { it.dateTimeLocal.date to it.metric.tempHigh }.sortedBy { it.first.toEpochDays() }
-    val avgTemperatures = map { it.dateTimeLocal.date to it.metric.tempAvg }.sortedBy { it.first.toEpochDays() }
-    val minTemperatures = map { it.dateTimeLocal.date to it.metric.tempLow }.sortedBy { it.first.toEpochDays() }
-    val tempChartModel = listOf(
-        maxTemperatures,
-        avgTemperatures,
-        minTemperatures
+    val maxTemperatures =
+        map { it.dateTimeLocal.date to it.metric.tempHigh }.sortedBy { it.first.toEpochDays() }
+    val avgTemperatures =
+        map { it.dateTimeLocal.date to it.metric.tempAvg }.sortedBy { it.first.toEpochDays() }
+    val minTemperatures =
+        map { it.dateTimeLocal.date to it.metric.tempLow }.sortedBy { it.first.toEpochDays() }
+    val tempChartModel = listOfNotNull(
+        maxTemperatures.takeIf { tempChartSets.isMaxAllowed },
+        avgTemperatures.takeIf { tempChartSets.isAvgAllowed },
+        minTemperatures.takeIf { tempChartSets.isMinAllowed },
     )
+    // TODO compute min and max here
     return HistoryTabData(
         maxTemperature = maxTemperature.metric.tempHigh,
         minTemperature = minTemperature.metric.tempLow,
         maxDate = maxTemperature.dateTimeLocal.date,
         minDate = minTemperature.dateTimeLocal.date,
+        observations = this,
+        tempChartSets = tempChartSets,
         tempChartModel = tempChartModel.toChartModel(),
     )
 }
 
 interface HistoryDataActions {
     fun selectTab(tab: HistoryDataTab)
+
+    fun selectMaxTempChart(isSelected: Boolean)
+
+    fun selectMinTempChart(isSelected: Boolean)
+
+    fun selectAvgTempChart(isSelected: Boolean)
 }

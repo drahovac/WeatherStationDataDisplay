@@ -1,6 +1,6 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
-import android.graphics.Typeface
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,23 +9,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.theme.rememberChartStyle
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelField
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueField
+import com.drahovac.weatherstationdisplay.android.ui.component.MarkerLineComponent
 import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
@@ -34,6 +38,7 @@ import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataState
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataTab
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryTabData
+import com.drahovac.weatherstationdisplay.viewmodel.TempChartSets
 import com.drahovac.weatherstationdisplay.viewmodel.toTabData
 import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
 import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
@@ -42,17 +47,20 @@ import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.compose.component.lineComponent
+import com.patrykandpatrick.vico.compose.component.overlayingComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
-import com.patrykandpatrick.vico.compose.component.textComponent
-import com.patrykandpatrick.vico.compose.legend.legendItem
-import com.patrykandpatrick.vico.compose.legend.verticalLegend
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
-import com.patrykandpatrick.vico.compose.style.currentChartStyle
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
 import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
+import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
+import com.patrykandpatrick.vico.core.component.shape.DashedShape
 import com.patrykandpatrick.vico.core.component.shape.Shapes
+import com.patrykandpatrick.vico.core.entry.ChartEntryModel
+import com.patrykandpatrick.vico.core.extension.copyColor
+import com.patrykandpatrick.vico.core.marker.Marker
+import com.patrykandpatrick.vico.core.marker.MarkerVisibilityChangeListener
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -73,7 +81,7 @@ private fun ScreenContent(
     state: HistoryDataState,
     actions: HistoryDataActions,
 ) {
-    val tabData = state.tabData.get(state.selectedTab)
+    val tabData = state.tabData[state.selectedTab]
 
     Column {
         TabRow(selectedTabIndex = state.selectedTab.ordinal) {
@@ -95,41 +103,143 @@ private fun ScreenContent(
             Overview(tabData)
 
             Spacer(modifier = Modifier.height(32.dp))
-            TemperatureChart(state)
+            state.currentTabData?.takeUnless { state.selectedTab == HistoryDataTab.YESTERDAY }
+                ?.let {
+                    TemperatureChart(it, actions)
+                }
         }
     }
 }
 
 @Composable
-private fun TemperatureChart(state: HistoryDataState) {
-    state.currentTabData?.let { tabData ->
-        ProvideChartStyle(rememberChartStyle(chartColors)) {
-            Chart(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 8.dp),
-                chart = lineChart(),
-                startAxis = startAxis(
-                    label = rememberStartAxisLabel(),
-                    horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
-                ),
-                bottomAxis = bottomAxis(
-                    label  = axisLabelComponent(horizontalPadding = 0.dp),
-                    titleComponent = textComponent(color = MaterialTheme.colorScheme.onPrimaryContainer),
-                    title = "Fuck",
-                    valueFormatter = { value, chartValue ->
-                        println("vaclav " + value)
-                        value.toString()
-                    },
-                    itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
-                ),
-                legend = rememberLegend(),
-                chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
-                autoScaleUp = AutoScaleUp.Full,
-                horizontalLayout = HorizontalLayout.FullWidth(),
-                model = tabData.tempChartModel,
+private fun TemperatureChart(tabData: HistoryTabData, actions: HistoryDataActions) {
+    val degree = stringResource(id = MR.strings.current_degree_celsius.resourceId)
+
+    Text(
+        modifier = Modifier
+            .padding(horizontal = 2.dp)
+            .padding(bottom = 4.dp),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        text = stringResource(id = MR.strings.history_temperature.resourceId)
+    )
+    Row {
+        Column(Modifier.weight(1f)) {
+            TempChartLegend(
+                chartColors = chartColors,
+                tempChartSets = tabData.tempChartSets,
+                actions = actions
             )
         }
+        Column(Modifier.weight(1f)) {
+
+        }
+    }
+
+    val colors = chartColors.filterSets(tabData.tempChartSets)
+    ProvideChartStyle(rememberChartStyle(colors)) {
+        Chart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 8.dp),
+            chart = lineChart(
+                axisValuesOverrider = object : AxisValuesOverrider<ChartEntryModel> {
+                    override fun getMinY(model: ChartEntryModel): Float {
+                        return model.minY
+                    }
+                }
+            ),
+            startAxis = startAxis(
+                maxLabelCount = 6,
+                label = rememberStartAxisLabel(),
+                horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
+                valueFormatter = { value, chartValues ->
+                    "$value$degree"
+                }
+            ),
+            marker = rememberMarker(),
+            markerVisibilityChangeListener = object : MarkerVisibilityChangeListener {
+                override fun onMarkerShown(
+                    marker: Marker,
+                    markerEntryModels: List<Marker.EntryModel>
+                ) {
+                    super.onMarkerShown(marker, markerEntryModels)
+                    println("vaclav shown ${markerEntryModels.map { it.entry }}")
+                }
+            },
+            bottomAxis = bottomAxis(
+                label = null,
+                itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
+            ),
+            chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
+            autoScaleUp = AutoScaleUp.Full,
+            horizontalLayout = HorizontalLayout.FullWidth(),
+            model = tabData.tempChartModel,
+        )
+    }
+}
+
+private fun List<Color>.filterSets(tempChartSets: TempChartSets): List<Color> {
+    return listOfNotNull(
+        this[0].takeIf { tempChartSets.isMaxAllowed },
+        this[1].takeIf { tempChartSets.isAvgAllowed },
+        this[2].takeIf { tempChartSets.isMinAllowed },
+    ).takeUnless { it.isEmpty() } ?: this
+}
+
+@Composable
+private fun TempChartLegend(
+    tempChartSets: TempChartSets,
+    chartColors: List<Color>,
+    actions: HistoryDataActions,
+) {
+    LegendLine(
+        label = stringResource(id = MR.strings.history_max_temperature.resourceId),
+        color = chartColors.first(),
+        checked = tempChartSets.isMaxAllowed,
+        onClick = { actions.selectMaxTempChart(it) },
+    )
+    LegendLine(
+        label = stringResource(id = MR.strings.history_avg_temperature.resourceId),
+        color = chartColors[1],
+        checked = tempChartSets.isAvgAllowed,
+        onClick = { actions.selectAvgTempChart(it) },
+    )
+    LegendLine(
+        label = stringResource(id = MR.strings.history_min_temperature.resourceId),
+        color = chartColors[2],
+        checked = tempChartSets.isMinAllowed,
+        onClick = { actions.selectMinTempChart(it) },
+    )
+}
+
+@Composable
+private fun LegendLine(
+    label: String,
+    color: Color,
+    checked: Boolean,
+    onClick: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(horizontal = 2.dp)
+            .fillMaxWidth()
+            .clickable {
+                onClick(!checked)
+            }
+            .padding(vertical = 4.dp)) {
+        Checkbox(
+            checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(
+                checkedColor = color
+            )
+        )
+        Text(
+            modifier = Modifier.padding(start = 4.dp),
+            text = label,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 
@@ -141,25 +251,6 @@ private fun rememberStartAxisLabel() = axisLabelComponent(
     verticalMargin = 2.dp,
     horizontalMargin = 2.dp,
     background = lineComponent(Color.Transparent),
-)
-
-
-@Composable
-private fun rememberLegend() = verticalLegend(
-    items = chartColors.mapIndexed { index, chartColor ->
-        legendItem(
-            icon = shapeComponent(Shapes.pillShape, chartColor),
-            label = textComponent(
-                color = currentChartStyle.axis.axisLabelColor,
-                textSize = 8.sp,
-                typeface = Typeface.MONOSPACE,
-            ),
-            labelText = "Legend",
-        )
-    },
-    iconSize = 4.dp,
-    iconPadding = 4.dp,
-    spacing = 4.dp,
 )
 
 @Composable
@@ -197,6 +288,49 @@ private val HistoryDataTab.label: String
             HistoryDataTab.MONTH -> stringResource(id = MR.strings.history_tab_month.resourceId)
         }
     }
+
+@Composable
+internal fun rememberMarker(): Marker {
+    val indicatorInnerComponent =
+        shapeComponent(Shapes.pillShape, MaterialTheme.colorScheme.surface)
+    val indicatorCenterComponent = shapeComponent(Shapes.pillShape, Color.White)
+    val indicatorOuterComponent = shapeComponent(Shapes.pillShape, Color.White)
+    val indicator = overlayingComponent(
+        outer = indicatorOuterComponent,
+        inner = overlayingComponent(
+            outer = indicatorCenterComponent,
+            inner = indicatorInnerComponent,
+            innerPaddingAll = indicatorInnerAndCenterComponentPaddingValue,
+        ),
+        innerPaddingAll = indicatorCenterAndOuterComponentPaddingValue,
+    )
+    val guideline = lineComponent(
+        MaterialTheme.colorScheme.onSurface.copy(GUIDELINE_ALPHA),
+        guidelineThickness,
+        guidelineShape,
+    )
+    return remember(indicator, guideline) {
+        MarkerLineComponent(indicator, guideline, onApplyEntryColor = { entryColor ->
+            indicatorOuterComponent.color =
+                entryColor.copyColor(INDICATOR_OUTER_COMPONENT_ALPHA)
+            with(indicatorCenterComponent) {
+                color = entryColor
+            }
+        })
+    }
+}
+
+private const val GUIDELINE_ALPHA = .2f
+private const val INDICATOR_OUTER_COMPONENT_ALPHA = 32
+private const val GUIDELINE_DASH_LENGTH_DP = 8f
+private const val GUIDELINE_GAP_LENGTH_DP = 4f
+
+private val indicatorInnerAndCenterComponentPaddingValue = 5.dp
+private val indicatorCenterAndOuterComponentPaddingValue = 8.dp
+private val guidelineThickness = 2.dp
+private val guidelineShape =
+    DashedShape(Shapes.pillShape, GUIDELINE_DASH_LENGTH_DP, GUIDELINE_GAP_LENGTH_DP)
+
 
 @Preview
 @Composable
@@ -248,7 +382,7 @@ fun HistoryDataScreenPreview() {
             state =
             HistoryDataState(
                 selectedTab = HistoryDataTab.MONTH,
-                tabData = mapOf(HistoryDataTab.MONTH to listOf(observation).toTabData()),
+                tabData = mapOf(HistoryDataTab.MONTH to listOf(observation).toTabData(TempChartSets())),
             ),
             actions = ActionsInvocationHandler.createActionsProxy(),
         )

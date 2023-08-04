@@ -76,7 +76,9 @@
     <string name="history_tab_yesterday">Yesterday</string>
     <string name="history_tab_week">7 days</string>
     <string name="history_tab_month">month</string>
+    <string name="history_temperature">Temperature</string>
     <string name="history_max_temperature">Max temperature</string>
     <string name="history_min_temperature">Min temperature</string>
+    <string name="history_avg_temperature">Average temperature</string>
     <string name="history_min_on">on</string>
 </resources>

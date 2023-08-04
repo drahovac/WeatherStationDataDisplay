@@ -47,7 +47,7 @@ class HistoryUseCase(
     }
 
     suspend fun getWeekHistory() = database.selectHistory(
-        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(7, DateTimeUnit.DAY),
+        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(8, DateTimeUnit.DAY),
         clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
     )
 

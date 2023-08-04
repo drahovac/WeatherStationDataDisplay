@@ -14,7 +14,9 @@ import kotlinx.coroutines.test.setMain
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class HistoryDataViewModelTest {
 
@@ -77,6 +79,42 @@ class HistoryDataViewModelTest {
         historyDataViewModel.state.value.let {
             assertEquals(HistoryDataTab.YESTERDAY, it.selectedTab)
             assertEquals(MAX_TEMP_YESTERDAY, it.tabData[HistoryDataTab.YESTERDAY]!!.maxTemperature)
+        }
+    }
+
+    @Test
+    fun `unselect max temp chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxTempChart(false)
+
+        historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK]!!.let {
+            assertEquals(2, it.tempChartModel.entries.size)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMinAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)
+        }
+    }
+
+    @Test
+    fun `unselect min temp chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMinTempChart(false)
+
+        historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK]!!.let {
+            assertEquals(2, it.tempChartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMinAllowed)
+        }
+    }
+
+    @Test
+    fun `unselect avg temp chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectAvgTempChart(false)
+
+        historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK]!!.let {
+            assertEquals(2, it.tempChartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
         }
     }
 

@@ -71,7 +71,9 @@
     <string name="history_tab_yesterday">Včera</string>
     <string name="history_tab_week">7 dní</string>
     <string name="history_tab_month">Měsíc</string>
-    <string name="history_max_temperature">Max teplota</string>
-    <string name="history_min_temperature">Min teplota</string>
+    <string name="history_temperature">Teplota</string>
+    <string name="history_avg_temperature">Průměrná temperature</string>
+    <string name="history_max_temperature">Max. teplota</string>
+    <string name="history_min_temperature">Min. teplota</string>
     <string name="history_min_on">dne</string>
 </resources>

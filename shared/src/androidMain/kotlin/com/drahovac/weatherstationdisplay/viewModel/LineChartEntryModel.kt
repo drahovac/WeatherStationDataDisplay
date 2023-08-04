@@ -9,17 +9,22 @@ import com.patrykandpatrick.vico.core.extension.round
 import kotlinx.datetime.LocalDate
 import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 actual class ChartModel(models: List<LineChartEntryModel>) :
     ComposedChartEntryModel<LineChartEntryModel> {
     override val composedEntryCollections: List<LineChartEntryModel> = models
     override val entries: List<List<ChartEntry>> = models.map { it.entries.first() }
-    override val minX: Float = models.minOf { it.minX }
-    override val maxX: Float = models.maxOf { it.maxX }
-    override val minY: Float = models.minOf { it.minY }
-    override val maxY: Float = models.maxOf { it.maxY }
-    override val stackedPositiveY: Float = models.maxOf { it.stackedPositiveY }
-    override val stackedNegativeY: Float = models.minOf { it.stackedNegativeY }
+    override val minX: Float = models.minOfOrNull { it.minX } ?: 0f
+    override val maxX: Float = models.maxOfOrNull { it.maxX } ?: 1f
+    override val minY: Float =
+        models.minOfOrNull { entry -> entry.minY.roundToInt().let { it - (it % 5) }.toFloat() }
+            ?: 0f
+    override val maxY: Float =
+        models.maxOfOrNull { entry -> entry.maxY.roundToInt().let { it + 5 - (it % 5) }.toFloat() }
+            ?: 0f
+    override val stackedPositiveY: Float = models.maxOfOrNull { it.stackedPositiveY } ?: 1f
+    override val stackedNegativeY: Float = models.minOfOrNull { it.stackedNegativeY } ?: 0f
     override val xGcd: Float = models.fold<LineChartEntryModel, Float?>(null) { gcd, model ->
         gcd?.gcdWith(model.xGcd) ?: model.xGcd
     } ?: 1f
@@ -29,6 +34,10 @@ actual class ChartModel(models: List<LineChartEntryModel>) :
 class LineChartEntryModel(
     chartEntries: List<ChartEntry>
 ) : ChartEntryModel {
+    init {
+        println("vaclav $chartEntries")
+    }
+
     override val entries: List<List<ChartEntry>> = listOf(chartEntries)
     override val minX: Float = chartEntries.minOf { it.x }
     override val maxX: Float = chartEntries.maxOf { it.x }
