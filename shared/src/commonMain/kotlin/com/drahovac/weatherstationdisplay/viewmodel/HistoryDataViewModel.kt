@@ -11,6 +11,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 
 class HistoryDataViewModel(
     private val historyUseCase: HistoryUseCase,
@@ -62,7 +68,8 @@ class HistoryDataViewModel(
 
     override fun selectMaxTempChart(isSelected: Boolean) {
         _state.update {
-            val tempChartSets = it.currentTabData?.tempChartSets?.copy(isMaxAllowed = isSelected)
+            val tempChartSets =
+                it.currentTabData?.tempChart?.tempChartSets?.copy(isMaxAllowed = isSelected)
             val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMaxAllowed = isSelected))
             it.copy(tabData = tabData)
         }
@@ -72,18 +79,31 @@ class HistoryDataViewModel(
         state: HistoryDataState,
         tempChartSets: TempChartSets
     ): MutableMap<HistoryTab, HistoryTabState?> {
+        return getTabData(state) {
+            it.tempChart.observations.toTabData(
+                tempChartSets,
+                state.selectedTab.daysCount
+            ) ?: it
+        }
+    }
+
+    private fun getTabData(
+        state: HistoryDataState,
+        updateTab: (HistoryTabState) -> HistoryTabState,
+    ): MutableMap<HistoryTab, HistoryTabState?> {
         return state.tabData.toMutableMap().apply {
             val removed = remove(state.selectedTab)
             put(
                 state.selectedTab,
-                removed?.observations?.toTabData(tempChartSets, state.selectedTab.daysCount)
+                removed?.let { updateTab(it) }
             )
         }
     }
 
     override fun selectMinTempChart(isSelected: Boolean) {
         _state.update {
-            val tempChartSets = it.currentTabData?.tempChartSets?.copy(isMinAllowed = isSelected)
+            val tempChartSets =
+                it.currentTabData?.tempChart?.tempChartSets?.copy(isMinAllowed = isSelected)
             val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMinAllowed = isSelected))
             it.copy(tabData = tabData)
         }
@@ -91,10 +111,48 @@ class HistoryDataViewModel(
 
     override fun selectAvgTempChart(isSelected: Boolean) {
         _state.update {
-            val tempChartSets = it.currentTabData?.tempChartSets?.copy(isAvgAllowed = isSelected)
+            val tempChartSets =
+                it.currentTabData?.tempChart?.tempChartSets?.copy(isAvgAllowed = isSelected)
             val tabData = getTabData(it, tempChartSets ?: TempChartSets(isAvgAllowed = isSelected))
             it.copy(tabData = tabData)
         }
+    }
+
+    override fun selectTempPoints(points: List<ChartPointEntry>, dayIndex: Int) {
+        _state.update {
+            it.copy(tabData = getTabData(it) { tabState ->
+                tabState.copy(
+                    tempChart = tabState.tempChart.copy(
+                        selectedEntries = getSelectedEntries(
+                            points,
+                            tabState.tempChart.tempChartSets,
+                            tabState.startDate.plus(dayIndex, DateTimeUnit.DAY)
+                        )
+                    )
+                )
+            })
+        }
+    }
+
+    private fun getSelectedEntries(
+        points: List<ChartPointEntry>,
+        tempChartSets: TempChartSets,
+        date: LocalDate,
+    ): TempChartSelection? {
+        return if (points.isNotEmpty() && tempChartSets.isNotEmpty()) {
+            var index = 0
+            val increaseIndex = { index += 1 }
+
+            TempChartSelection(
+                maxTemp = if (tempChartSets.isMaxAllowed) points.getOrNull(index)
+                    .also { increaseIndex() } else null,
+                avgTemp = if (tempChartSets.isAvgAllowed) points.getOrNull(index)
+                    .also { increaseIndex() } else null,
+                minTemp = if (tempChartSets.isMinAllowed) points.getOrNull(index)
+                    .also { increaseIndex() } else null,
+                date = date,
+            )
+        } else null
     }
 
     private suspend fun fetchTabData(
@@ -131,13 +189,19 @@ fun List<HistoryObservation>.toTabData(
     )
     // TODO compute min and max here
     return HistoryTabState(
+        startDate = maxTemperatures.firstOrNull()?.first ?: Clock.System.now().toLocalDateTime(
+            TimeZone.UTC
+        ).date,
         maxTemperature = maxTemperature.metric.tempHigh,
         minTemperature = minTemperature.metric.tempLow,
         maxDate = maxTemperature.dateTimeLocal.date,
         minDate = minTemperature.dateTimeLocal.date,
-        observations = this,
-        tempChartSets = tempChartSets,
-        tempChartModel = tempChartModel.toChartModel(defaultDaysCount),
+        tempChart = ChartState(
+            observations = this,
+            tempChartSets = tempChartSets,
+            selectedEntries = null,
+            tempChartModel = tempChartModel.toChartModel(defaultDaysCount)
+        ),
     )
 }
 
@@ -156,4 +220,6 @@ interface HistoryDataActions {
     fun selectMinTempChart(isSelected: Boolean)
 
     fun selectAvgTempChart(isSelected: Boolean)
+
+    fun selectTempPoints(points: List<ChartPointEntry>, dayIndex: Int)
 }

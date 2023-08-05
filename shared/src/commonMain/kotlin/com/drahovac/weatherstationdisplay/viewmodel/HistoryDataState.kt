@@ -16,22 +16,41 @@ data class TempChartSets(
     val isMaxAllowed: Boolean = true,
     val isMinAllowed: Boolean = true,
     val isAvgAllowed: Boolean = true,
-)
+) {
+    fun isNotEmpty() = isMaxAllowed || isMinAllowed || isAvgAllowed
+}
 
 enum class HistoryTab {
     YESTERDAY, WEEK, MONTH
 }
 
 data class HistoryTabState(
+    val startDate: LocalDate,
     val maxTemperature: Double,
     val maxDate: LocalDate,
     val minTemperature: Double,
     val minDate: LocalDate,
+    val tempChart: ChartState<TempChartSelection>
+)
+
+data class ChartState<T : ChartSelection>(
     val observations: List<HistoryObservation>,
     val tempChartSets: TempChartSets = TempChartSets(),
+    val selectedEntries: T? = null,
     val tempChartModel: ChartModel
 )
 
+interface ChartSelection
+
+data class TempChartSelection(
+    val maxTemp: ChartPointEntry?,
+    val avgTemp: ChartPointEntry?,
+    val minTemp: ChartPointEntry?,
+    val date: LocalDate
+) : ChartSelection
+
 expect class ChartModel
+
+expect interface ChartPointEntry
 
 expect fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Float): ChartModel

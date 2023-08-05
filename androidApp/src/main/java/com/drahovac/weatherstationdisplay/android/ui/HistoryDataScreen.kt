@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,11 +34,13 @@ import com.drahovac.weatherstationdisplay.android.ui.component.MarkerLineCompone
 import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
+import com.drahovac.weatherstationdisplay.viewmodel.ChartState
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataActions
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataState
-import com.drahovac.weatherstationdisplay.viewmodel.HistoryTab
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryTab
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryTabState
+import com.drahovac.weatherstationdisplay.viewmodel.TempChartSelection
 import com.drahovac.weatherstationdisplay.viewmodel.TempChartSets
 import com.drahovac.weatherstationdisplay.viewmodel.toTabData
 import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
@@ -57,6 +60,7 @@ import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.component.shape.DashedShape
 import com.patrykandpatrick.vico.core.component.shape.Shapes
+import com.patrykandpatrick.vico.core.entry.ChartEntry
 import com.patrykandpatrick.vico.core.entry.ChartEntryModel
 import com.patrykandpatrick.vico.core.extension.copyColor
 import com.patrykandpatrick.vico.core.marker.Marker
@@ -105,14 +109,17 @@ private fun ScreenContent(
             Spacer(modifier = Modifier.height(32.dp))
             state.currentTabData?.takeUnless { state.selectedTab == HistoryTab.YESTERDAY }
                 ?.let {
-                    TemperatureChart(it, actions)
+                    TemperatureChart(it.tempChart, actions)
                 }
         }
     }
 }
 
 @Composable
-private fun TemperatureChart(tabData: HistoryTabState, actions: HistoryDataActions) {
+private fun TemperatureChart(
+    chartState: ChartState<TempChartSelection>,
+    actions: HistoryDataActions
+) {
     val degree = stringResource(id = MR.strings.current_degree_celsius.resourceId)
 
     Text(
@@ -127,16 +134,43 @@ private fun TemperatureChart(tabData: HistoryTabState, actions: HistoryDataActio
         Column(Modifier.weight(1f)) {
             TempChartLegend(
                 chartColors = chartColors,
-                tempChartSets = tabData.tempChartSets,
+                tempChartSets = chartState.tempChartSets,
                 actions = actions
             )
         }
-        Column(Modifier.weight(1f)) {
-
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = 4.dp)) {
+            chartState.selectedEntries?.let { selection ->
+                Text(
+                    text = selection.date.toFormattedDate(),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                selection.maxTemp?.let {
+                    TemperatureEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_max_temperature.resourceId
+                    )
+                }
+                selection.avgTemp?.let {
+                    TemperatureEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_avg_temperature.resourceId
+                    )
+                }
+                selection.minTemp?.let {
+                    TemperatureEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_min_temperature.resourceId
+                    )
+                }
+            }
         }
     }
 
-    val colors = chartColors.filterSets(tabData.tempChartSets)
+    val colors = chartColors.filterSets(chartState.tempChartSets)
     ProvideChartStyle(rememberChartStyle(colors)) {
         Chart(
             modifier = Modifier
@@ -164,7 +198,26 @@ private fun TemperatureChart(tabData: HistoryTabState, actions: HistoryDataActio
                     markerEntryModels: List<Marker.EntryModel>
                 ) {
                     super.onMarkerShown(marker, markerEntryModels)
-                    println("vaclav shown ${markerEntryModels.map { it.entry }}")
+                    actions.selectTempPoints(
+                        markerEntryModels.map { it.entry },
+                        markerEntryModels.firstOrNull()?.index ?: 0
+                    )
+                }
+
+                override fun onMarkerHidden(marker: Marker) {
+                    super.onMarkerHidden(marker)
+                    actions.selectTempPoints(emptyList(), 0)
+                }
+
+                override fun onMarkerMoved(
+                    marker: Marker,
+                    markerEntryModels: List<Marker.EntryModel>
+                ) {
+                    super.onMarkerMoved(marker, markerEntryModels)
+                    actions.selectTempPoints(
+                        markerEntryModels.map { it.entry },
+                        markerEntryModels.firstOrNull()?.index ?: 0
+                    )
                 }
             },
             bottomAxis = bottomAxis(
@@ -174,9 +227,22 @@ private fun TemperatureChart(tabData: HistoryTabState, actions: HistoryDataActio
             chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
             autoScaleUp = AutoScaleUp.Full,
             horizontalLayout = HorizontalLayout.FullWidth(),
-            model = tabData.tempChartModel,
+            model = chartState.tempChartModel,
         )
     }
+}
+
+@Composable
+private fun TemperatureEntryLine(value: ChartEntry, @StringRes labelId: Int) {
+    Text(
+        text = "${stringResource(labelId)} : ${value.y}${
+            stringResource(
+                id = MR.strings.current_degree_celsius.resourceId
+            )
+        }",
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        style = MaterialTheme.typography.bodyMedium
+    )
 }
 
 private fun List<Color>.filterSets(tempChartSets: TempChartSets): List<Color> {

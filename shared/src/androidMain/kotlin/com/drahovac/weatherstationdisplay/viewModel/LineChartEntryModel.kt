@@ -31,6 +31,8 @@ actual class ChartModel(models: List<LineChartEntryModel>, defaultDaysCount: Flo
     override val id: Int = models.map { it.id }.hashCode()
 }
 
+actual typealias ChartPointEntry = ChartEntry
+
 class LineChartEntryModel(
     chartEntries: List<ChartEntry>
 ) : ChartEntryModel {

@@ -3,6 +3,7 @@ package com.drahovac.weatherstationdisplay.viewmodel
 import com.drahovac.weatherstationdisplay.domain.historyMetricPrototype
 import com.drahovac.weatherstationdisplay.domain.historyObservationPrototype
 import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
+import com.patrykandpatrick.vico.core.entry.FloatEntry
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -11,11 +12,13 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.LocalDate
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class HistoryDataViewModelTest {
@@ -87,10 +90,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMaxTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.tempChartModel.entries.size)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMinAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)
+            assertEquals(2, it.tempChart.tempChartModel.entries.size)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMinAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isAvgAllowed)
         }
     }
 
@@ -99,10 +102,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMinTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.tempChartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMinAllowed)
+            assertEquals(2, it.tempChart.tempChartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isAvgAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMinAllowed)
         }
     }
 
@@ -111,10 +114,99 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectAvgTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.tempChartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
+            assertEquals(2, it.tempChart.tempChartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isAvgAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
+        }
+    }
+
+    @Test
+    fun `set selection if all charts selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertEquals(POINT1, selection.maxTemp)
+            assertEquals(POINT2, selection.avgTemp)
+            assertEquals(POINT3, selection.minTemp)
+        }
+    }
+
+    @Test
+    fun `clear selection if entries empty`() = runTest(dispatcher) {
+        historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
+        historyDataViewModel.selectTempPoints(emptyList(), 0)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+            assertNull(selection)
+        }
+    }
+
+    @Test
+    fun `clear selection if sets empty`() = runTest(dispatcher) {
+        historyDataViewModel.selectAvgTempChart(false)
+        historyDataViewModel.selectMaxTempChart(false)
+        historyDataViewModel.selectMinTempChart(false)
+        historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+            assertNull(selection)
+        }
+    }
+
+    @Test
+    fun `set selection if avg and min charts selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxTempChart(false)
+
+        historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 0)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertNull(selection.maxTemp)
+            assertEquals(POINT1, selection.avgTemp)
+            assertEquals(POINT2, selection.minTemp)
+        }
+    }
+
+    @Test
+    fun `set selection if max and min charts selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectAvgTempChart(false)
+
+        historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 0)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertNull(selection.avgTemp)
+            assertEquals(POINT1, selection.maxTemp)
+            assertEquals(POINT2, selection.minTemp)
+        }
+    }
+
+    @Test
+    fun `set selection date based on index`() = runTest(dispatcher) {
+        historyDataViewModel.selectAvgTempChart(false)
+
+        historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 4)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertEquals(LocalDate.parse("2023-08-02"), selection.date)
+        }
+    }
+
+    @Test
+    fun `set selection if only min chart selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxTempChart(false)
+        historyDataViewModel.selectAvgTempChart(false)
+
+        historyDataViewModel.selectTempPoints(listOf(POINT1), 1)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertNull(selection.maxTemp)
+            assertNull(selection.avgTemp)
+            assertEquals(POINT1, selection.minTemp)
         }
     }
 
@@ -133,5 +225,8 @@ class HistoryDataViewModelTest {
         val WEEK_HISTORY = listOf(HISTORY1, HISTORY2)
         val MONTH_HISTORY = listOf(HISTORY1, HISTORY2, HISTORY2, HISTORY3)
         val YESTERDAY_HISTORY = listOf(HISTORY1)
+        val POINT1 = FloatEntry(1f, 1f)
+        val POINT2 = FloatEntry(2f, 1f)
+        val POINT3 = FloatEntry(3f, 1f)
     }
 }
