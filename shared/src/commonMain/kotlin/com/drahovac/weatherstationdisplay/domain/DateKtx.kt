@@ -17,10 +17,12 @@ fun LocalDate.toCurrentUTCMillisEndOFDay() =
     this.atTime(LocalTime(23, 59, 59)).toInstant(TimeZone.UTC).toEpochMilliseconds()
 
 fun LocalDateTime.toCurrentUTCDays() =
-    this.toInstant(TimeZone.UTC).toEpochMilliseconds()  / 86400000
+    this.toInstant(TimeZone.UTC).toEpochMilliseconds() / 86400000
 
 
 fun LocalDate.Companion.fromUTCEpochMillis(millis: Long) =
     Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date
+
+fun Instant.toEpochDays() = toEpochMilliseconds() / 86400000
 
 expect fun LocalDate.toFormattedDate(): String

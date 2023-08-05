@@ -6,6 +6,7 @@ import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.fromUTCEpochMillis
 import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillisEndOFDay
+import com.drahovac.weatherstationdisplay.domain.toEpochDays
 import com.squareup.sqldelight.runtime.coroutines.asFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -27,6 +28,7 @@ class Database(databaseDriverFactory: DatabaseDriver) {
                         stationID = observation.stationID,
                         tz = observation.tz,
                         obsTimeUtc = observation.obsTimeUtc.toEpochMilliseconds(),
+                        obsDayUtc = observation.obsTimeUtc.toEpochDays(),
                         obsTimeLocal = observation.dateTimeLocal.toString(),
                         epoch = observation.epoch,
                         lat = observation.lat,

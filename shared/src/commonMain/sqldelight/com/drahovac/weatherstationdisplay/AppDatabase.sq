@@ -2,6 +2,7 @@ CREATE TABLE weather_data (
     station_id TEXT NOT NULL,
     tz TEXT NOT NULL,
     obs_time_utc INTEGER NOT NULL,
+    obs_days_utc INTEGER NOT NULL,
     obs_time_local TEXT NOT NULL,
     epoch INTEGER NOT NULL,
     lat REAL NOT NULL,
@@ -36,7 +37,7 @@ CREATE TABLE weather_data (
     metric_pressure_trend REAL NOT NULL,
     metric_precip_rate REAL NOT NULL,
     metric_precip_total REAL NOT NULL,
-    PRIMARY KEY (station_id, obs_time_utc)
+    PRIMARY KEY (station_id, obs_days_utc)
 );
 
 
@@ -45,6 +46,7 @@ INSERT OR REPLACE INTO weather_data (
     station_id,
     tz,
     obs_time_utc,
+    obs_days_utc,
     obs_time_local,
     epoch,
     lat,
@@ -82,6 +84,7 @@ INSERT OR REPLACE INTO weather_data (
     :stationID,
     :tz,
     :obsTimeUtc,
+    :obsDayUtc,
     :obsTimeLocal,
     :epoch,
     :lat,
