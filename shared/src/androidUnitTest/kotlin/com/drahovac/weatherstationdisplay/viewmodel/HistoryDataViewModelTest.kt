@@ -36,12 +36,12 @@ class HistoryDataViewModelTest {
     @Test
     fun `fetch history on init`() = runTest(dispatcher) {
         coVerify { historyUseCase.fetchHistoryUpToDate() }
-        assertNotNull(historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK])
+        assertNotNull(historyDataViewModel.state.value.tabData[HistoryTab.WEEK])
     }
 
     @Test
     fun `set week tab data`() = runTest(dispatcher) {
-        historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK]!!.let {
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
             assertEquals(MAX_TEMP, it.maxTemperature)
             assertEquals(MIN_TEMP, it.minTemperature)
         }
@@ -49,36 +49,36 @@ class HistoryDataViewModelTest {
 
     @Test
     fun `do not fetch data if same tab selected`() = runTest(dispatcher) {
-        historyDataViewModel.selectTab(HistoryDataTab.WEEK)
+        historyDataViewModel.selectTab(HistoryTab.WEEK)
 
         coVerify(exactly = 1) { historyUseCase.getWeekHistory() } // only once on init
     }
 
     @Test
     fun `fetch month data on month tab selected`() = runTest(dispatcher) {
-        historyDataViewModel.selectTab(HistoryDataTab.MONTH)
+        historyDataViewModel.selectTab(HistoryTab.MONTH)
 
         testScheduler.advanceTimeBy(1)
 
         coVerify { historyUseCase.getMonthHistory() }
         testScheduler.advanceTimeBy(1)
         historyDataViewModel.state.value.let {
-            assertEquals(HistoryDataTab.MONTH, it.selectedTab)
-            assertEquals(MAX_TEMP_MONTH, it.tabData[HistoryDataTab.MONTH]!!.maxTemperature)
+            assertEquals(HistoryTab.MONTH, it.selectedTab)
+            assertEquals(MAX_TEMP_MONTH, it.tabData[HistoryTab.MONTH]!!.maxTemperature)
         }
     }
 
     @Test
     fun `fetch yesterday data on yesterday tab selected`() = runTest(dispatcher) {
-        historyDataViewModel.selectTab(HistoryDataTab.YESTERDAY)
+        historyDataViewModel.selectTab(HistoryTab.YESTERDAY)
 
         testScheduler.advanceTimeBy(1)
 
         coVerify { historyUseCase.getYesterdayHistory() }
         testScheduler.advanceTimeBy(1)
         historyDataViewModel.state.value.let {
-            assertEquals(HistoryDataTab.YESTERDAY, it.selectedTab)
-            assertEquals(MAX_TEMP_YESTERDAY, it.tabData[HistoryDataTab.YESTERDAY]!!.maxTemperature)
+            assertEquals(HistoryTab.YESTERDAY, it.selectedTab)
+            assertEquals(MAX_TEMP_YESTERDAY, it.tabData[HistoryTab.YESTERDAY]!!.maxTemperature)
         }
     }
 
@@ -86,7 +86,7 @@ class HistoryDataViewModelTest {
     fun `unselect max temp chart`() = runTest(dispatcher) {
         historyDataViewModel.selectMaxTempChart(false)
 
-        historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK]!!.let {
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
             assertEquals(2, it.tempChartModel.entries.size)
             assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
             assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMinAllowed)
@@ -98,7 +98,7 @@ class HistoryDataViewModelTest {
     fun `unselect min temp chart`() = runTest(dispatcher) {
         historyDataViewModel.selectMinTempChart(false)
 
-        historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK]!!.let {
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
             assertEquals(2, it.tempChartModel.entries.size)
             assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
             assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)
@@ -110,7 +110,7 @@ class HistoryDataViewModelTest {
     fun `unselect avg temp chart`() = runTest(dispatcher) {
         historyDataViewModel.selectAvgTempChart(false)
 
-        historyDataViewModel.state.value.tabData[HistoryDataTab.WEEK]!!.let {
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
             assertEquals(2, it.tempChartModel.entries.size)
             assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isMaxAllowed)
             assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChartSets.isAvgAllowed)

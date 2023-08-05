@@ -7,7 +7,8 @@ import kotlin.test.assertEquals
 
 class ChartModelTest {
 
-    val model = ChartModel(listOf(LineChartEntryModel(ENTRIES_1), LineChartEntryModel(ENTRIES_2)))
+    val model =
+        ChartModel(listOf(LineChartEntryModel(ENTRIES_1), LineChartEntryModel(ENTRIES_2)), 6f)
 
     @Test
     fun `return correct min max values`() {
@@ -19,11 +20,11 @@ class ChartModelTest {
 
     @Test
     fun `return valid model with empty values`() {
-       val emptyModel =  ChartModel(emptyList())
+        val emptyModel = ChartModel(emptyList(), 5f)
 
         assertEquals(0f, emptyModel.minX)
-        assertEquals(0f, emptyModel.maxX)
-        assertEquals(0f, emptyModel.maxY)
+        assertEquals(5f, emptyModel.maxX)
+        assertEquals(25f, emptyModel.maxY)
         assertEquals(0f, emptyModel.minY)
     }
 

@@ -5,10 +5,10 @@ import kotlinx.datetime.LocalDate
 
 data class HistoryDataState(
     val isLoading: Boolean = false,
-    val selectedTab: HistoryDataTab = HistoryDataTab.WEEK,
-    val tabData: Map<HistoryDataTab, HistoryTabData?> = mapOf(),
+    val selectedTab: HistoryTab = HistoryTab.WEEK,
+    val tabData: Map<HistoryTab, HistoryTabState?> = mapOf(),
 ) {
-    val currentTabData: HistoryTabData?
+    val currentTabData: HistoryTabState?
         get() = tabData[selectedTab]
 }
 
@@ -18,11 +18,11 @@ data class TempChartSets(
     val isAvgAllowed: Boolean = true,
 )
 
-enum class HistoryDataTab {
+enum class HistoryTab {
     YESTERDAY, WEEK, MONTH
 }
 
-data class HistoryTabData(
+data class HistoryTabState(
     val maxTemperature: Double,
     val maxDate: LocalDate,
     val minTemperature: Double,
@@ -34,4 +34,4 @@ data class HistoryTabData(
 
 expect class ChartModel
 
-expect fun List<List<Pair<LocalDate, Double>>>.toChartModel(): ChartModel
+expect fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Float): ChartModel

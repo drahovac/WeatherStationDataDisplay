@@ -65,6 +65,16 @@ class HistoryUseCaseTest {
     }
 
     @Test
+    fun `do not fetch history up to date if already downloaded`() = runTest(scheduler) {
+        coEvery { database.selectNewestHistoryDate() } returns TODAY.date
+
+        historyUseCase.fetchHistoryUpToDate()
+
+        coVerify { database.selectNewestHistoryDate() }
+        coVerify(exactly = 0) { historyWeatherDataRepository.fetchHistory(any()) }
+    }
+
+    @Test
     fun `fetch history and split request per month max`() = runTest(scheduler) {
         val dateBefore3months = LocalDate.parse("2023-05-30")
         val dateBefore2months = LocalDate.parse("2023-06-30")
@@ -103,7 +113,7 @@ class HistoryUseCaseTest {
 
     private companion object {
         val LOCAL_DATE = LocalDate.parse("2023-07-03")
-        val WEEK_BEFORE_TODAY = LocalDate.parse("2023-07-24")
+        val WEEK_BEFORE_TODAY = LocalDate.parse("2023-07-23")
         val TODAY = LocalDateTime.parse("2023-07-31T03:06")
         val YESTERDAY = LocalDate.parse("2023-07-30")
         val HISTORY = mockk<HistoryObservation>()

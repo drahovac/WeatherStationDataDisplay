@@ -35,9 +35,9 @@ import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataActions
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataState
-import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataTab
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryTab
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
-import com.drahovac.weatherstationdisplay.viewmodel.HistoryTabData
+import com.drahovac.weatherstationdisplay.viewmodel.HistoryTabState
 import com.drahovac.weatherstationdisplay.viewmodel.TempChartSets
 import com.drahovac.weatherstationdisplay.viewmodel.toTabData
 import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
@@ -85,7 +85,7 @@ private fun ScreenContent(
 
     Column {
         TabRow(selectedTabIndex = state.selectedTab.ordinal) {
-            HistoryDataTab.values().forEach {
+            HistoryTab.values().forEach {
                 Tab(
                     selected = it == state.selectedTab, onClick = { actions.selectTab(it) }) {
                     Text(
@@ -103,7 +103,7 @@ private fun ScreenContent(
             Overview(tabData)
 
             Spacer(modifier = Modifier.height(32.dp))
-            state.currentTabData?.takeUnless { state.selectedTab == HistoryDataTab.YESTERDAY }
+            state.currentTabData?.takeUnless { state.selectedTab == HistoryTab.YESTERDAY }
                 ?.let {
                     TemperatureChart(it, actions)
                 }
@@ -112,7 +112,7 @@ private fun ScreenContent(
 }
 
 @Composable
-private fun TemperatureChart(tabData: HistoryTabData, actions: HistoryDataActions) {
+private fun TemperatureChart(tabData: HistoryTabState, actions: HistoryDataActions) {
     val degree = stringResource(id = MR.strings.current_degree_celsius.resourceId)
 
     Text(
@@ -254,7 +254,7 @@ private fun rememberStartAxisLabel() = axisLabelComponent(
 )
 
 @Composable
-private fun Overview(tabData: HistoryTabData?) {
+private fun Overview(tabData: HistoryTabState?) {
     Row(Modifier.padding(16.dp)) {
         Column(Modifier.weight(1f)) {
             val maxDate = tabData?.maxDate?.toFormattedDate()?.let {
@@ -279,13 +279,13 @@ private fun Overview(tabData: HistoryTabData?) {
     }
 }
 
-private val HistoryDataTab.label: String
+private val HistoryTab.label: String
     @Composable
     get() {
         return when (this) {
-            HistoryDataTab.YESTERDAY -> stringResource(id = MR.strings.history_tab_yesterday.resourceId)
-            HistoryDataTab.WEEK -> stringResource(id = MR.strings.history_tab_week.resourceId)
-            HistoryDataTab.MONTH -> stringResource(id = MR.strings.history_tab_month.resourceId)
+            HistoryTab.YESTERDAY -> stringResource(id = MR.strings.history_tab_yesterday.resourceId)
+            HistoryTab.WEEK -> stringResource(id = MR.strings.history_tab_week.resourceId)
+            HistoryTab.MONTH -> stringResource(id = MR.strings.history_tab_month.resourceId)
         }
     }
 
@@ -381,8 +381,13 @@ fun HistoryDataScreenPreview() {
         ScreenContent(
             state =
             HistoryDataState(
-                selectedTab = HistoryDataTab.MONTH,
-                tabData = mapOf(HistoryDataTab.MONTH to listOf(observation).toTabData(TempChartSets())),
+                selectedTab = HistoryTab.MONTH,
+                tabData = mapOf(
+                    HistoryTab.MONTH to listOf(observation).toTabData(
+                        TempChartSets(),
+                        6f
+                    )
+                ),
             ),
             actions = ActionsInvocationHandler.createActionsProxy(),
         )

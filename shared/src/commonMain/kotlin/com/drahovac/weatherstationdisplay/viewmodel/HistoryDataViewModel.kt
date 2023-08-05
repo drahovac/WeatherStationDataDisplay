@@ -31,16 +31,16 @@ class HistoryDataViewModel(
             _state.update {
                 it.copy(
                     isLoading = false,
-                    selectedTab = HistoryDataTab.WEEK,
+                    selectedTab = HistoryTab.WEEK,
                     tabData = mapOf(
-                        HistoryDataTab.WEEK to fetchTabData(HistoryDataTab.WEEK, TempChartSets())
+                        HistoryTab.WEEK to fetchTabData(HistoryTab.WEEK, TempChartSets())
                     )
                 )
             }
         }
     }
 
-    override fun selectTab(tab: HistoryDataTab) {
+    override fun selectTab(tab: HistoryTab) {
         _state.update {
             it.copy(selectedTab = tab)
         }
@@ -71,10 +71,13 @@ class HistoryDataViewModel(
     private fun getTabData(
         state: HistoryDataState,
         tempChartSets: TempChartSets
-    ): MutableMap<HistoryDataTab, HistoryTabData?> {
+    ): MutableMap<HistoryTab, HistoryTabState?> {
         return state.tabData.toMutableMap().apply {
             val removed = remove(state.selectedTab)
-            put(state.selectedTab, removed?.observations?.toTabData(tempChartSets))
+            put(
+                state.selectedTab,
+                removed?.observations?.toTabData(tempChartSets, state.selectedTab.daysCount)
+            )
         }
     }
 
@@ -95,22 +98,23 @@ class HistoryDataViewModel(
     }
 
     private suspend fun fetchTabData(
-        tab: HistoryDataTab,
+        tab: HistoryTab,
         tempChartSets: TempChartSets,
-    ): HistoryTabData? {
+    ): HistoryTabState? {
         return withContext(defaultDispatcher) {
             when (tab) {
-                HistoryDataTab.YESTERDAY -> historyUseCase.getYesterdayHistory()
-                HistoryDataTab.WEEK -> historyUseCase.getWeekHistory()
-                HistoryDataTab.MONTH -> historyUseCase.getMonthHistory()
+                HistoryTab.YESTERDAY -> historyUseCase.getYesterdayHistory()
+                HistoryTab.WEEK -> historyUseCase.getWeekHistory()
+                HistoryTab.MONTH -> historyUseCase.getMonthHistory()
             }
-        }.toTabData(tempChartSets)
+        }.toTabData(tempChartSets, tab.daysCount)
     }
 }
 
 fun List<HistoryObservation>.toTabData(
     tempChartSets: TempChartSets,
-): HistoryTabData? {
+    defaultDaysCount: Float,
+): HistoryTabState? {
     if (isEmpty()) return null
     val minTemperature = minBy { it.metric.tempLow }
     val maxTemperature = maxBy { it.metric.tempHigh }
@@ -126,19 +130,26 @@ fun List<HistoryObservation>.toTabData(
         minTemperatures.takeIf { tempChartSets.isMinAllowed },
     )
     // TODO compute min and max here
-    return HistoryTabData(
+    return HistoryTabState(
         maxTemperature = maxTemperature.metric.tempHigh,
         minTemperature = minTemperature.metric.tempLow,
         maxDate = maxTemperature.dateTimeLocal.date,
         minDate = minTemperature.dateTimeLocal.date,
         observations = this,
         tempChartSets = tempChartSets,
-        tempChartModel = tempChartModel.toChartModel(),
+        tempChartModel = tempChartModel.toChartModel(defaultDaysCount),
     )
 }
 
+private val HistoryTab.daysCount: Float
+    get() = when (this) {
+        HistoryTab.YESTERDAY -> 1f
+        HistoryTab.WEEK -> 6f
+        HistoryTab.MONTH -> 30f
+    }
+
 interface HistoryDataActions {
-    fun selectTab(tab: HistoryDataTab)
+    fun selectTab(tab: HistoryTab)
 
     fun selectMaxTempChart(isSelected: Boolean)
 

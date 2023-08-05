@@ -4,6 +4,6 @@ import kotlinx.datetime.LocalDate
 
 actual class ChartModel
 
-actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(): ChartModel {
+actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Float): ChartModel {
     return ChartModel()
 }

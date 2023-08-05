@@ -11,18 +11,18 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-actual class ChartModel(models: List<LineChartEntryModel>) :
+actual class ChartModel(models: List<LineChartEntryModel>, defaultDaysCount: Float) :
     ComposedChartEntryModel<LineChartEntryModel> {
     override val composedEntryCollections: List<LineChartEntryModel> = models
     override val entries: List<List<ChartEntry>> = models.map { it.entries.first() }
     override val minX: Float = models.minOfOrNull { it.minX } ?: 0f
-    override val maxX: Float = models.maxOfOrNull { it.maxX } ?: 1f
+    override val maxX: Float = models.maxOfOrNull { it.maxX } ?: defaultDaysCount
     override val minY: Float =
         models.minOfOrNull { entry -> entry.minY.roundToInt().let { it - (it % 5) }.toFloat() }
             ?: 0f
     override val maxY: Float =
         models.maxOfOrNull { entry -> entry.maxY.roundToInt().let { it + 5 - (it % 5) }.toFloat() }
-            ?: 0f
+            ?: 25f
     override val stackedPositiveY: Float = models.maxOfOrNull { it.stackedPositiveY } ?: 1f
     override val stackedNegativeY: Float = models.minOfOrNull { it.stackedNegativeY } ?: 0f
     override val xGcd: Float = models.fold<LineChartEntryModel, Float?>(null) { gcd, model ->
@@ -34,10 +34,6 @@ actual class ChartModel(models: List<LineChartEntryModel>) :
 class LineChartEntryModel(
     chartEntries: List<ChartEntry>
 ) : ChartEntryModel {
-    init {
-        println("vaclav $chartEntries")
-    }
-
     override val entries: List<List<ChartEntry>> = listOf(chartEntries)
     override val minX: Float = chartEntries.minOf { it.x }
     override val maxX: Float = chartEntries.maxOf { it.x }
@@ -49,7 +45,7 @@ class LineChartEntryModel(
     override val id: Int = chartEntries.map { it.x + it.y }.hashCode()
 }
 
-actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(): ChartModel {
+actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Float): ChartModel {
     val models = this.map {
         var firstDate = 0f
         LineChartEntryModel(it.mapIndexed { index, pair ->
@@ -62,7 +58,7 @@ actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(): ChartModel {
         })
     }
 
-    return ChartModel(models)
+    return ChartModel(models, defaultDaysCount)
 }
 
 internal fun Iterable<Iterable<ChartEntry>>.calculateXGcd(): Float {

@@ -29,7 +29,6 @@ class HistoryUseCase(
         return runCatching {
             startDates.mapIndexed { index, localDate ->
                 val endDate = startDates.getOrNull(index + 1)
-                println(localDate.toFormattedDate() + " " + endDate?.toFormattedDate())
                 val fetchRes = endDate?.let {
                     historyWeatherDataRepository.fetchHistory(localDate, endDate)
                 } ?: run { historyWeatherDataRepository.fetchHistory(localDate) }
@@ -42,7 +41,7 @@ class HistoryUseCase(
 
     suspend fun fetchHistoryUpToDate() {
         database.selectNewestHistoryDate()?.let {
-            fetchHistory(it)
+            if (it != clock.now().toLocalDateTime(TimeZone.UTC).date) fetchHistory(it)
         }
     }
 
