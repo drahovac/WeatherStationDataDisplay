@@ -74,8 +74,7 @@ class NetworkClient(
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) {
-                    // TODO logs
-                    println(message)
+                    co.touchlab.kermit.Logger.d(message)
                 }
             }
             level = LogLevel.ALL

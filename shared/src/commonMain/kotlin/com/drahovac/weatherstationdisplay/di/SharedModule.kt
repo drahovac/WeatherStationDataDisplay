@@ -1,5 +1,8 @@
 package com.drahovac.weatherstationdisplay.di
 
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Severity
+import co.touchlab.kermit.platformLogWriter
 import com.drahovac.weatherstationdisplay.data.CurrentWeatherDataRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.Database
 import com.drahovac.weatherstationdisplay.data.DeviceCredentialsRepositoryImpl
@@ -55,7 +58,13 @@ internal expect inline fun <reified T : KMMViewModel> Module.kmmViewModel(
     noinline definition: Definition<T>
 ): KoinDefinition<T>
 
-fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
+fun initApplication(
+    isProd: Boolean,
+    appDeclaration: KoinAppDeclaration = {}
+) {
+    Logger.setLogWriters(platformLogWriter())
+    Logger.setTag("Weather")
+    Logger.setMinSeverity(if (isProd) Severity.Error else Severity.Verbose)
     startKoin {
         appDeclaration()
         modules(platformModule, sharedModule)

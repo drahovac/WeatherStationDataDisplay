@@ -67,6 +67,7 @@ kotlin {
                 implementation(Deps.Ktor.ktorSerialization)
                 implementation(Deps.Ktor.ktorContent)
                 implementation(Deps.Ktor.jsonSerial)
+                implementation("co.touchlab:kermit:1.2.2")
             }
         }
         val commonTest by getting {
