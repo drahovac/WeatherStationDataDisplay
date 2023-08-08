@@ -2,7 +2,7 @@ package com.drahovac.weatherstationdisplay.usecase
 
 import com.drahovac.weatherstationdisplay.data.Database
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
-import com.drahovac.weatherstationdisplay.domain.toFormattedDate
+import com.drahovac.weatherstationdisplay.domain.firstDayOfWeek
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -45,14 +45,18 @@ class HistoryUseCase(
         }
     }
 
-    suspend fun getWeekHistory() = database.selectHistory(
-        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(8, DateTimeUnit.DAY),
-        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
-    )
+    suspend fun getWeekHistory() = clock.firstDayOfWeek().let {
+        database.selectHistory(
+            it,
+            it.plus(1, DateTimeUnit.WEEK),
+        )
+    }
 
     suspend fun getMonthHistory() = database.selectHistory(
-        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.MONTH),
-        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
+        clock.now().toLocalDateTime(TimeZone.UTC).date.let {
+            LocalDate(it.year, it.month, 1).minus(1, DateTimeUnit.DAY)
+        },
+        clock.now().toLocalDateTime(TimeZone.UTC).date,
     )
 
     suspend fun getYesterdayHistory() = database.selectHistory(

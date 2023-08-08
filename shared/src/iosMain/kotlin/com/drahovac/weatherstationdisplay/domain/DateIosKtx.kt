@@ -2,6 +2,7 @@ package com.drahovac.weatherstationdisplay.domain
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.toNSDateComponents
+import platform.Foundation.NSCalendar
 import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSDateFormatterMediumStyle
 import platform.Foundation.NSLocale
@@ -17,4 +18,8 @@ actual fun LocalDate.toFormattedDate(): String {
     }
 
     return this.toNSDateComponents().date?.let { dateFormatter.stringFromDate(it) } ?: ""
+}
+
+actual fun LocalDate.Companion.firstDayOfWeekIndex(): Int {
+    return NSCalendar.currentCalendar.firstWeekday().toInt()
 }

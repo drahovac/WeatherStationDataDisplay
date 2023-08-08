@@ -73,6 +73,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("co.touchlab:kermit-test:2.0.0-RC5")
             }
         }
         val androidMain by getting {

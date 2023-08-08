@@ -40,7 +40,8 @@ class HistoryUseCaseTest {
         every { database.hasData() } returns hasDataFlow
         coEvery { database.selectHistory(any()) } returns emptyList()
         coEvery { database.selectNewestHistoryDate() } returns LOCAL_DATE
-        coEvery { database.selectHistory(WEEK_BEFORE_TODAY, YESTERDAY) } returns listOf(HISTORY)
+        coEvery { database.selectHistory(TODAY.date, WEEK_AFTER_TODAY) } returns listOf(HISTORY)
+        coEvery { database.selectHistory(PREVIOUS_MONTH, TODAY.date) } returns listOf(HISTORY)
         coEvery { historyWeatherDataRepository.fetchHistory(LOCAL_DATE) } returns Result.success(
             listOf(HISTORY)
         )
@@ -108,14 +109,21 @@ class HistoryUseCaseTest {
     fun `return week history`() = runTest(scheduler) {
         historyUseCase.getWeekHistory()
 
-        coVerify { database.selectHistory(WEEK_BEFORE_TODAY, YESTERDAY) }
+        coVerify { database.selectHistory(TODAY.date, WEEK_AFTER_TODAY) }
+    }
+
+    @Test
+    fun `return month history`() = runTest(scheduler) {
+        historyUseCase.getMonthHistory()
+
+        coVerify { database.selectHistory(PREVIOUS_MONTH, TODAY.date) }
     }
 
     private companion object {
         val LOCAL_DATE = LocalDate.parse("2023-07-03")
-        val WEEK_BEFORE_TODAY = LocalDate.parse("2023-07-23")
+        val WEEK_AFTER_TODAY = LocalDate.parse("2023-08-07")
         val TODAY = LocalDateTime.parse("2023-07-31T03:06")
-        val YESTERDAY = LocalDate.parse("2023-07-30")
+        val PREVIOUS_MONTH = LocalDate.parse("2023-06-30")
         val HISTORY = mockk<HistoryObservation>()
     }
 }

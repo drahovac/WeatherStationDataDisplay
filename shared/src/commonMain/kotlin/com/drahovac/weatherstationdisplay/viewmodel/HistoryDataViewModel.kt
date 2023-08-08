@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
+import co.touchlab.kermit.Logger
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
 import com.rickclephas.kmm.viewmodel.KMMViewModel
@@ -173,6 +174,7 @@ fun List<HistoryObservation>.toTabData(
     tempChartSets: TempChartSets,
     defaultDaysCount: Float,
 ): HistoryTabState? {
+    Logger.d("Loaded observations $this")
     if (isEmpty()) return null
     val minTemperature = minBy { it.metric.tempLow }
     val maxTemperature = maxBy { it.metric.tempHigh }

@@ -1,5 +1,9 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
+import co.touchlab.kermit.ExperimentalKermitApi
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Severity
+import co.touchlab.kermit.TestLogWriter
 import com.drahovac.weatherstationdisplay.domain.historyMetricPrototype
 import com.drahovac.weatherstationdisplay.domain.historyObservationPrototype
 import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
@@ -27,8 +31,10 @@ class HistoryDataViewModelTest {
     private val historyUseCase: HistoryUseCase = mockk(relaxUnitFun = true)
     private lateinit var historyDataViewModel: HistoryDataViewModel
 
+    @OptIn(ExperimentalKermitApi::class)
     @Before
     fun setUp() {
+        Logger.setLogWriters(TestLogWriter(Severity.Verbose))
         coEvery { historyUseCase.getWeekHistory() } returns WEEK_HISTORY
         coEvery { historyUseCase.getMonthHistory() } returns MONTH_HISTORY
         coEvery { historyUseCase.getYesterdayHistory() } returns YESTERDAY_HISTORY
