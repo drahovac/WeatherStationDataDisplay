@@ -69,7 +69,7 @@
     <string name="history_start_download">Stáhnout</string>
     <string name="history_start_select">Vybrat</string>
     <string name="history_tab_yesterday">Včera</string>
-    <string name="history_tab_week">7 dní</string>
+    <string name="history_tab_week">Týden</string>
     <string name="history_tab_month">Měsíc</string>
     <string name="history_temperature">Teplota</string>
     <string name="history_avg_temperature">Průměrná teplota</string>

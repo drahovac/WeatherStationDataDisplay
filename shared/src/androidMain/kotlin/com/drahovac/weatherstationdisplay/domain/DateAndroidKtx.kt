@@ -3,8 +3,10 @@ package com.drahovac.weatherstationdisplay.domain
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.toJavaLocalDate
+import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
 
@@ -14,4 +16,9 @@ actual fun LocalDate.toFormattedDate(): String {
 
 actual fun LocalDate.Companion.firstDayOfWeekIndex(): Int {
     return WeekFields.of(Locale.getDefault()).firstDayOfWeek.isoDayNumber
+}
+
+actual fun LocalDate.toLocalizedShortDayName(): String {
+    return DayOfWeek.of(this.dayOfWeek.isoDayNumber)
+        .getDisplayName(TextStyle.SHORT, Locale.getDefault())
 }

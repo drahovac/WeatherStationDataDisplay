@@ -23,3 +23,7 @@ actual fun LocalDate.toFormattedDate(): String {
 actual fun LocalDate.Companion.firstDayOfWeekIndex(): Int {
     return NSCalendar.currentCalendar.firstWeekday().toInt()
 }
+
+actual fun LocalDate.toLocalizedShortDayName(): String {
+    return "TODO"
+}

@@ -46,3 +46,5 @@ fun Clock.firstDayOfWeek(): LocalDate {
 expect fun LocalDate.toFormattedDate(): String
 
 expect fun LocalDate.Companion.firstDayOfWeekIndex(): Int
+
+expect fun LocalDate.toLocalizedShortDayName() : String

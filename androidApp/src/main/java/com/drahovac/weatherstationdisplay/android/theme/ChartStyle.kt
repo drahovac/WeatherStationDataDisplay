@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.android.theme
 
+import android.graphics.Typeface
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -26,6 +27,7 @@ internal fun rememberChartStyle(columnChartColors: List<Color>, lineChartColors:
                 axisLabelColor = Color(defaultColors.axisLabelColor),
                 axisGuidelineColor = Color(defaultColors.axisGuidelineColor),
                 axisLineColor = Color(defaultColors.axisLineColor),
+                axisLabelTypeface = Typeface.DEFAULT,
             ),
             ChartStyle.ColumnChart(
                 columnChartColors.map { columnChartColor ->

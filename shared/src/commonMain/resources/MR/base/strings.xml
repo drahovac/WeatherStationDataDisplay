@@ -74,8 +74,8 @@
     <string name="history_start_download">Download</string>
     <string name="history_start_select">Select</string>
     <string name="history_tab_yesterday">Yesterday</string>
-    <string name="history_tab_week">7 days</string>
-    <string name="history_tab_month">month</string>
+    <string name="history_tab_week">Week</string>
+    <string name="history_tab_month">Month</string>
     <string name="history_temperature">Temperature</string>
     <string name="history_max_temperature">Max temperature</string>
     <string name="history_min_temperature">Min temperature</string>

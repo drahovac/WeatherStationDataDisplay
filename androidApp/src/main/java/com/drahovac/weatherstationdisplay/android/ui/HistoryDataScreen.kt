@@ -2,6 +2,7 @@ package com.drahovac.weatherstationdisplay.android.ui
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,10 +22,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.theme.rememberChartStyle
@@ -53,6 +56,7 @@ import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.overlayingComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
+import com.patrykandpatrick.vico.core.DefaultDimens.AXIS_LABEL_SIZE
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
@@ -109,9 +113,6 @@ private fun ScreenContent(
             Spacer(modifier = Modifier.height(32.dp))
             state.currentTabData?.takeIf { it.tempChart.hasMultipleItems }
                 ?.let {
-                    println("vaclav ${it.tempChart.observations.map { 
-                        it.obsTimeUtc to it.dateTimeLocal
-                    }}")
                     TemperatureChart(it.tempChart, actions)
                 }
         }
@@ -233,6 +234,19 @@ private fun TemperatureChart(
             horizontalLayout = HorizontalLayout.FullWidth(),
             model = chartState.tempChartModel,
         )
+    }
+    Row(Modifier.padding(horizontal = 4.dp)) {
+        Text(
+            text = "30.0°C",
+            fontSize = AXIS_LABEL_SIZE.sp,
+            modifier = Modifier.alpha(0f)
+        ) // Spacer for vert. axis
+        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
+            chartState.bottomLabels.forEach {
+                Text(text = it, fontSize = AXIS_LABEL_SIZE.sp)
+            }
+        }
+
     }
 }
 
@@ -455,7 +469,7 @@ fun HistoryDataScreenPreview() {
                 tabData = mapOf(
                     HistoryTab.MONTH to listOf(observation).toTabData(
                         TempChartSets(),
-                        6f
+                        HistoryTab.MONTH,
                     )
                 ),
             ),

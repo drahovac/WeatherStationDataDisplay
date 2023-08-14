@@ -37,10 +37,11 @@ data class ChartState<T : ChartSelection>(
     val observations: List<HistoryObservation>,
     val tempChartSets: TempChartSets = TempChartSets(),
     val selectedEntries: T? = null,
+    val bottomLabels: List<String> = emptyList(),
     val tempChartModel: ChartModel
 ) {
     val hasMultipleItems: Boolean
-        get() = observations.size > 1 // cannot show chart with sinle value (lib is bad)
+        get() = observations.size > 1 // cannot show chart with single value (lib is bad)
 }
 
 interface ChartSelection

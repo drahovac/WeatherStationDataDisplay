@@ -2,6 +2,8 @@ package com.drahovac.weatherstationdisplay.viewmodel
 
 import co.touchlab.kermit.Logger
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
+import com.drahovac.weatherstationdisplay.domain.toFormattedDate
+import com.drahovac.weatherstationdisplay.domain.toLocalizedShortDayName
 import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
 import com.rickclephas.kmm.viewmodel.KMMViewModel
 import com.rickclephas.kmm.viewmodel.coroutineScope
@@ -83,7 +85,7 @@ class HistoryDataViewModel(
         return getTabData(state) {
             it.tempChart.observations.toTabData(
                 tempChartSets,
-                state.selectedTab.daysCount
+                state.selectedTab
             ) ?: it
         }
     }
@@ -166,13 +168,13 @@ class HistoryDataViewModel(
                 HistoryTab.WEEK -> historyUseCase.getWeekHistory()
                 HistoryTab.MONTH -> historyUseCase.getMonthHistory()
             }
-        }.toTabData(tempChartSets, tab.daysCount)
+        }.toTabData(tempChartSets, tab)
     }
 }
 
 fun List<HistoryObservation>.toTabData(
     tempChartSets: TempChartSets,
-    defaultDaysCount: Float,
+    tab: HistoryTab,
 ): HistoryTabState? {
     Logger.d("Loaded observations $this")
     if (isEmpty()) return null
@@ -202,9 +204,26 @@ fun List<HistoryObservation>.toTabData(
             observations = this,
             tempChartSets = tempChartSets,
             selectedEntries = null,
-            tempChartModel = tempChartModel.toChartModel(defaultDaysCount)
+            bottomLabels = bottomLabels(tab),
+            tempChartModel = tempChartModel.toChartModel(tab.daysCount)
         ),
     )
+}
+
+private fun List<HistoryObservation>.bottomLabels(tab: HistoryTab): List<String> {
+    val minDate = minBy { it.obsTimeUtc }
+    val maxDate = maxBy { it.obsTimeUtc }
+    return when (tab) {
+        HistoryTab.MONTH -> listOf(
+            minDate.dateTimeLocal.date.toFormattedDate(),
+            maxDate.dateTimeLocal.date.toFormattedDate()
+        )
+
+        HistoryTab.YESTERDAY -> emptyList()
+        HistoryTab.WEEK -> return List(7) { it }.map {
+            minDate.dateTimeLocal.date.plus(it, DateTimeUnit.DAY).toLocalizedShortDayName()
+        }
+    }
 }
 
 private val HistoryTab.daysCount: Float
