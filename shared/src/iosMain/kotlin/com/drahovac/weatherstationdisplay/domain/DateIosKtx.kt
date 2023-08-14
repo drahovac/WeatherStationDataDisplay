@@ -27,3 +27,11 @@ actual fun LocalDate.Companion.firstDayOfWeekIndex(): Int {
 actual fun LocalDate.toLocalizedShortDayName(): String {
     return "TODO"
 }
+
+actual fun LocalDate.toLocalizedLongDayName(): String {
+    return "TODO"
+}
+
+actual fun LocalDate.toLocalizedMontName(): String {
+    return "TODO"
+}

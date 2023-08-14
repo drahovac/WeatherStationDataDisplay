@@ -37,6 +37,9 @@ import com.drahovac.weatherstationdisplay.android.ui.component.MarkerLineCompone
 import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
+import com.drahovac.weatherstationdisplay.domain.toLocalizedLongDayName
+import com.drahovac.weatherstationdisplay.domain.toLocalizedMontName
+import com.drahovac.weatherstationdisplay.domain.toLocalizedShortDayName
 import com.drahovac.weatherstationdisplay.viewmodel.ChartState
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataActions
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataState
@@ -69,8 +72,10 @@ import com.patrykandpatrick.vico.core.entry.ChartEntryModel
 import com.patrykandpatrick.vico.core.extension.copyColor
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.marker.MarkerVisibilityChangeListener
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import org.koin.androidx.compose.getViewModel
 
@@ -108,6 +113,7 @@ private fun ScreenContent(
             Modifier
                 .verticalScroll(rememberScrollState())
         ) {
+            tabData?.let { IntervalInfo(tabData, state.selectedTab) }
             Overview(tabData)
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -339,7 +345,11 @@ private fun rememberStartAxisLabel() = axisLabelComponent(
 
 @Composable
 private fun Overview(tabData: HistoryTabState?) {
-    Row(Modifier.padding(16.dp)) {
+    Row(
+        Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
+    ) {
         Column(Modifier.weight(1f)) {
             val maxDate = tabData?.maxDate?.toFormattedDate()?.let {
                 "${stringResource(MR.strings.history_min_on.resourceId)} $it"
@@ -361,6 +371,28 @@ private fun Overview(tabData: HistoryTabState?) {
             LabelField(label = minDate.orEmpty())
         }
     }
+}
+
+@Composable
+private fun IntervalInfo(tabData: HistoryTabState, tab: HistoryTab) {
+    Text(
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp, bottom = 8.dp),
+        text = when (tab) {
+            HistoryTab.YESTERDAY -> "${tabData.startDate.toLocalizedLongDayName()}, ${tabData.startDate.toFormattedDate()}"
+            HistoryTab.WEEK -> "${tabData.startDate.toLocalizedShortDayName()}, ${tabData.startDate.toFormattedDate()} - ${
+                tabData.startDate.plus(
+                    6,
+                    DateTimeUnit.DAY
+                ).toLocalizedShortDayName()
+            }, ${tabData.startDate.plus(6, DateTimeUnit.DAY).toFormattedDate()}"
+
+            HistoryTab.MONTH -> tabData.startDate.toLocalizedMontName()
+        }
+    )
 }
 
 private val HistoryTab.label: String

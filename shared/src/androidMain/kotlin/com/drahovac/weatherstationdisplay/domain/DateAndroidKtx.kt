@@ -4,6 +4,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.toJavaLocalDate
 import java.time.DayOfWeek
+import java.time.Month
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.format.TextStyle
@@ -21,4 +22,14 @@ actual fun LocalDate.Companion.firstDayOfWeekIndex(): Int {
 actual fun LocalDate.toLocalizedShortDayName(): String {
     return DayOfWeek.of(this.dayOfWeek.isoDayNumber)
         .getDisplayName(TextStyle.SHORT, Locale.getDefault())
+}
+
+actual fun LocalDate.toLocalizedLongDayName(): String {
+    return DayOfWeek.of(this.dayOfWeek.isoDayNumber)
+        .getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault())
+}
+
+actual fun LocalDate.toLocalizedMontName(): String {
+    return Month.of(this.monthNumber)
+        .getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault())
 }

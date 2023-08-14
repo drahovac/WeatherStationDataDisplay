@@ -48,3 +48,7 @@ expect fun LocalDate.toFormattedDate(): String
 expect fun LocalDate.Companion.firstDayOfWeekIndex(): Int
 
 expect fun LocalDate.toLocalizedShortDayName() : String
+
+expect fun LocalDate.toLocalizedLongDayName() : String
+
+expect fun LocalDate.toLocalizedMontName() : String
