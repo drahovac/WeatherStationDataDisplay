@@ -38,7 +38,10 @@ data class ChartState<T : ChartSelection>(
     val tempChartSets: TempChartSets = TempChartSets(),
     val selectedEntries: T? = null,
     val tempChartModel: ChartModel
-)
+) {
+    val hasMultipleItems: Boolean
+        get() = observations.size > 1 // cannot show chart with sinle value (lib is bad)
+}
 
 interface ChartSelection
 

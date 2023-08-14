@@ -6,6 +6,7 @@ import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.fromUTCEpochMillis
 import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillisEndOFDay
+import com.drahovac.weatherstationdisplay.domain.toCurrentUTCMillisStartOFDay
 import com.drahovac.weatherstationdisplay.domain.toEpochDays
 import com.squareup.sqldelight.runtime.coroutines.asFlow
 import kotlinx.coroutines.Dispatchers
@@ -75,7 +76,7 @@ class Database(databaseDriverFactory: DatabaseDriver) {
     ): List<HistoryObservation> {
         return withContext(Dispatchers.IO) {
             dbQuery.selectHistoryByDate(
-                startDate = startDate.toCurrentUTCMillisEndOFDay(),
+                startDate = startDate.toCurrentUTCMillisStartOFDay(),
                 endDate = endDate.toCurrentUTCMillisEndOFDay()
             ).executeAsList().map {
                 it.toDomain()

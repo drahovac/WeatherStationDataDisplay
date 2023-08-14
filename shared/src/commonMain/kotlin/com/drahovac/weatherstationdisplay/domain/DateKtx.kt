@@ -21,6 +21,9 @@ fun LocalDate.toCurrentUTCMillis() =
 fun LocalDate.toCurrentUTCMillisEndOFDay() =
     this.atTime(LocalTime(23, 59, 59)).toInstant(TimeZone.UTC).toEpochMilliseconds()
 
+fun LocalDate.toCurrentUTCMillisStartOFDay() =
+    this.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
+
 fun LocalDateTime.toCurrentUTCDays() =
     this.toInstant(TimeZone.UTC).toEpochMilliseconds() / 86400000
 

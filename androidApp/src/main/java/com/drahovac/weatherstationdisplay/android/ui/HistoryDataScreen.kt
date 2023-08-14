@@ -107,8 +107,11 @@ private fun ScreenContent(
             Overview(tabData)
 
             Spacer(modifier = Modifier.height(32.dp))
-            state.currentTabData?.takeUnless { state.selectedTab == HistoryTab.YESTERDAY }
+            state.currentTabData?.takeIf { it.tempChart.hasMultipleItems }
                 ?.let {
+                    println("vaclav ${it.tempChart.observations.map { 
+                        it.obsTimeUtc to it.dateTimeLocal
+                    }}")
                     TemperatureChart(it.tempChart, actions)
                 }
         }
@@ -141,7 +144,8 @@ private fun TemperatureChart(
         Column(
             Modifier
                 .weight(1f)
-                .padding(start = 4.dp)) {
+                .padding(start = 4.dp)
+        ) {
             chartState.selectedEntries?.let { selection ->
                 Text(
                     text = selection.date.toFormattedDate(),
