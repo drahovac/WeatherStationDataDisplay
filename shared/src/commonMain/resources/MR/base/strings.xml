@@ -81,4 +81,6 @@
     <string name="history_min_temperature">Min temperature</string>
     <string name="history_avg_temperature">Average temperature</string>
     <string name="history_min_on">on</string>
+    <string name="history_max_solar_radiation">Maximum Solar Radiation</string>
+    <string name="history_high_uv_index">High UV Index</string>
 </resources>

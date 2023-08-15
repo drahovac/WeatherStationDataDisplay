@@ -26,11 +26,23 @@ enum class HistoryTab {
 
 data class HistoryTabState(
     val startDate: LocalDate,
+    val temperature: TemperatureState,
+    val uv: UvState,
+)
+
+data class TemperatureState(
     val maxTemperature: Double,
     val maxDate: LocalDate,
     val minTemperature: Double,
     val minDate: LocalDate,
-    val tempChart: ChartState<TempChartSelection>
+    val tempChart: ChartState<TempChartSelection>,
+)
+
+data class UvState(
+    val maxUvIndex: Int,
+    val maxRadiation: Double,
+    val maxUvDate: LocalDate,
+    val maxRadiationDate: LocalDate,
 )
 
 data class ChartState<T : ChartSelection>(

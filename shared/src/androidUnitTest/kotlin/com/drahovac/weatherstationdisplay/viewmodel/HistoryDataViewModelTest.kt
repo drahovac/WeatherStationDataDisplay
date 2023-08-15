@@ -51,8 +51,8 @@ class HistoryDataViewModelTest {
     @Test
     fun `set week tab data`() = runTest(dispatcher) {
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(MAX_TEMP, it.maxTemperature)
-            assertEquals(MIN_TEMP, it.minTemperature)
+            assertEquals(MAX_TEMP, it.temperature.maxTemperature)
+            assertEquals(MIN_TEMP, it.temperature.minTemperature)
         }
     }
 
@@ -73,7 +73,9 @@ class HistoryDataViewModelTest {
         testScheduler.advanceTimeBy(1)
         historyDataViewModel.state.value.let {
             assertEquals(HistoryTab.MONTH, it.selectedTab)
-            assertEquals(MAX_TEMP_MONTH, it.tabData[HistoryTab.MONTH]!!.maxTemperature)
+            assertEquals(MAX_TEMP_MONTH, it.tabData[HistoryTab.MONTH]!!.temperature.maxTemperature)
+            assertEquals(MAX_RADIATION_MONTH, it.tabData[HistoryTab.MONTH]!!.uv.maxRadiation)
+            assertEquals(MAX_UV_MONTH.toInt(), it.tabData[HistoryTab.MONTH]!!.uv.maxUvIndex)
         }
     }
 
@@ -87,7 +89,10 @@ class HistoryDataViewModelTest {
         testScheduler.advanceTimeBy(1)
         historyDataViewModel.state.value.let {
             assertEquals(HistoryTab.YESTERDAY, it.selectedTab)
-            assertEquals(MAX_TEMP_YESTERDAY, it.tabData[HistoryTab.YESTERDAY]!!.maxTemperature)
+            assertEquals(
+                MAX_TEMP_YESTERDAY,
+                it.tabData[HistoryTab.YESTERDAY]!!.temperature.maxTemperature
+            )
         }
     }
 
@@ -96,10 +101,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMaxTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.tempChart.tempChartModel.entries.size)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMinAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isAvgAllowed)
+            assertEquals(2, it.temperature.tempChart.tempChartModel.entries.size)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMinAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isAvgAllowed)
         }
     }
 
@@ -108,10 +113,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMinTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.tempChart.tempChartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isAvgAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMinAllowed)
+            assertEquals(2, it.temperature.tempChart.tempChartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isAvgAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMinAllowed)
         }
     }
 
@@ -120,10 +125,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectAvgTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.tempChart.tempChartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isAvgAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.tempChart.tempChartSets.isMaxAllowed)
+            assertEquals(2, it.temperature.tempChart.tempChartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isAvgAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
         }
     }
 
@@ -131,7 +136,7 @@ class HistoryDataViewModelTest {
     fun `set selection if all charts selected`() = runTest(dispatcher) {
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertEquals(POINT1, selection.maxTemp)
             assertEquals(POINT2, selection.avgTemp)
@@ -144,7 +149,7 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
         historyDataViewModel.selectTempPoints(emptyList(), 0)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
             assertNull(selection)
         }
     }
@@ -156,7 +161,7 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMinTempChart(false)
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
             assertNull(selection)
         }
     }
@@ -167,7 +172,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 0)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertNull(selection.maxTemp)
             assertEquals(POINT1, selection.avgTemp)
@@ -181,7 +186,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 0)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertNull(selection.avgTemp)
             assertEquals(POINT1, selection.maxTemp)
@@ -195,7 +200,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 4)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertEquals(LocalDate.parse("2023-08-02"), selection.date)
         }
@@ -208,7 +213,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1), 1)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertNull(selection.maxTemp)
             assertNull(selection.avgTemp)
@@ -220,6 +225,8 @@ class HistoryDataViewModelTest {
         const val MAX_TEMP = 14.0
         const val MAX_TEMP_YESTERDAY = 2.0
         const val MAX_TEMP_MONTH = 23.0
+        const val MAX_UV_MONTH = 12.0
+        const val MAX_RADIATION_MONTH = 20000.0
         const val MIN_TEMP = -13.0
         val METRIC1 = historyMetricPrototype.copy(tempHigh = MAX_TEMP_YESTERDAY, tempLow = MIN_TEMP)
         val METRIC2 = historyMetricPrototype.copy(tempHigh = MAX_TEMP, tempLow = 10.0)
@@ -227,7 +234,12 @@ class HistoryDataViewModelTest {
 
         val HISTORY1 = historyObservationPrototype.copy(metric = METRIC1)
         val HISTORY2 = historyObservationPrototype.copy(stationID = "ID3", metric = METRIC2)
-        val HISTORY3 = historyObservationPrototype.copy(stationID = "ID5", metric = METRIC3)
+        val HISTORY3 = historyObservationPrototype.copy(
+            stationID = "ID5",
+            metric = METRIC3,
+            uvHigh = MAX_UV_MONTH,
+            solarRadiationHigh = MAX_RADIATION_MONTH
+        )
         val WEEK_HISTORY = listOf(HISTORY1, HISTORY2)
         val MONTH_HISTORY = listOf(HISTORY1, HISTORY2, HISTORY2, HISTORY3)
         val YESTERDAY_HISTORY = listOf(HISTORY1)

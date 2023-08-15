@@ -117,9 +117,9 @@ private fun ScreenContent(
             Overview(tabData)
 
             Spacer(modifier = Modifier.height(32.dp))
-            state.currentTabData?.takeIf { it.tempChart.hasMultipleItems }
+            state.currentTabData?.takeIf { it.temperature.tempChart.hasMultipleItems }
                 ?.let {
-                    TemperatureChart(it.tempChart, actions)
+                    TemperatureChart(it.temperature.tempChart, actions)
                 }
         }
     }
@@ -198,7 +198,7 @@ private fun TemperatureChart(
                 maxLabelCount = 6,
                 label = rememberStartAxisLabel(),
                 horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
-                valueFormatter = { value, chartValues ->
+                valueFormatter = { value, _ ->
                     "$value$degree"
                 }
             ),
@@ -351,24 +351,55 @@ private fun Overview(tabData: HistoryTabState?) {
             .padding(bottom = 16.dp)
     ) {
         Column(Modifier.weight(1f)) {
-            val maxDate = tabData?.maxDate?.toFormattedDate()?.let {
+            val maxDate = tabData?.temperature?.maxDate?.toFormattedDate()?.let {
+                "${stringResource(MR.strings.history_min_on.resourceId)} $it"
+            }
+            val maxUVDate = tabData?.uv?.maxUvDate?.toFormattedDate()?.let {
                 "${stringResource(MR.strings.history_min_on.resourceId)} $it"
             }
             LabelValueField(
                 label = stringResource(id = MR.strings.history_max_temperature.resourceId),
-                value = tabData?.maxTemperature?.toString().orEmpty()
+                value = tabData?.temperature?.maxTemperature?.toString().orEmpty()
             )
             LabelField(label = maxDate.orEmpty())
+            Spacer(modifier = Modifier.height(8.dp))
+            LabelValueField(
+                label = stringResource(id = MR.strings.history_high_uv_index.resourceId),
+                value = tabData?.uv?.maxUvIndex?.toString().orEmpty()
+            )
+            LabelField(label = maxUVDate.orEmpty())
         }
         Column(Modifier.weight(1f)) {
-            val minDate = tabData?.minDate?.toFormattedDate()?.let {
+            val minDate = tabData?.temperature?.minDate?.toFormattedDate()?.let {
+                "${stringResource(MR.strings.history_min_on.resourceId)} $it"
+            }
+            val maxRadiationDate = tabData?.uv?.maxRadiationDate?.toFormattedDate()?.let {
                 "${stringResource(MR.strings.history_min_on.resourceId)} $it"
             }
             LabelValueField(
                 label = stringResource(id = MR.strings.history_min_temperature.resourceId),
-                value = tabData?.minTemperature?.toString().orEmpty()
+                value = tabData?.temperature?.minTemperature?.toString().orEmpty()
             )
             LabelField(label = minDate.orEmpty())
+            Spacer(modifier = Modifier.height(8.dp))
+            LabelField(stringResource(id = MR.strings.history_max_solar_radiation.resourceId))
+            Row {
+                Text(
+                    modifier = Modifier.alignByBaseline(),
+                    text = tabData?.uv?.maxRadiation?.toString().orEmpty(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .alignByBaseline(),
+                    text = stringResource(id = MR.strings.current_radiation_units.resourceId),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            LabelField(label = maxRadiationDate.orEmpty())
         }
     }
 }

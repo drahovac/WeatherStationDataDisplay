@@ -72,7 +72,7 @@ class HistoryDataViewModel(
     override fun selectMaxTempChart(isSelected: Boolean) {
         _state.update {
             val tempChartSets =
-                it.currentTabData?.tempChart?.tempChartSets?.copy(isMaxAllowed = isSelected)
+                it.currentTabData?.temperature?.tempChart?.tempChartSets?.copy(isMaxAllowed = isSelected)
             val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMaxAllowed = isSelected))
             it.copy(tabData = tabData)
         }
@@ -83,7 +83,7 @@ class HistoryDataViewModel(
         tempChartSets: TempChartSets
     ): MutableMap<HistoryTab, HistoryTabState?> {
         return getTabData(state) {
-            it.tempChart.observations.toTabData(
+            it.temperature.tempChart.observations.toTabData(
                 tempChartSets,
                 state.selectedTab
             ) ?: it
@@ -106,7 +106,7 @@ class HistoryDataViewModel(
     override fun selectMinTempChart(isSelected: Boolean) {
         _state.update {
             val tempChartSets =
-                it.currentTabData?.tempChart?.tempChartSets?.copy(isMinAllowed = isSelected)
+                it.currentTabData?.temperature?.tempChart?.tempChartSets?.copy(isMinAllowed = isSelected)
             val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMinAllowed = isSelected))
             it.copy(tabData = tabData)
         }
@@ -115,7 +115,7 @@ class HistoryDataViewModel(
     override fun selectAvgTempChart(isSelected: Boolean) {
         _state.update {
             val tempChartSets =
-                it.currentTabData?.tempChart?.tempChartSets?.copy(isAvgAllowed = isSelected)
+                it.currentTabData?.temperature?.tempChart?.tempChartSets?.copy(isAvgAllowed = isSelected)
             val tabData = getTabData(it, tempChartSets ?: TempChartSets(isAvgAllowed = isSelected))
             it.copy(tabData = tabData)
         }
@@ -124,13 +124,16 @@ class HistoryDataViewModel(
     override fun selectTempPoints(points: List<ChartPointEntry>, dayIndex: Int) {
         _state.update {
             it.copy(tabData = getTabData(it) { tabState ->
+                val tempChart = tabState.temperature.tempChart.copy(
+                    selectedEntries = getSelectedEntries(
+                        points,
+                        tabState.temperature.tempChart.tempChartSets,
+                        tabState.startDate.plus(dayIndex, DateTimeUnit.DAY)
+                    )
+                )
                 tabState.copy(
-                    tempChart = tabState.tempChart.copy(
-                        selectedEntries = getSelectedEntries(
-                            points,
-                            tabState.tempChart.tempChartSets,
-                            tabState.startDate.plus(dayIndex, DateTimeUnit.DAY)
-                        )
+                    temperature = tabState.temperature.copy(
+                        tempChart = tempChart
                     )
                 )
             })
@@ -178,8 +181,11 @@ fun List<HistoryObservation>.toTabData(
 ): HistoryTabState? {
     Logger.d("Loaded observations $this")
     if (isEmpty()) return null
-    val minTemperature = minBy { it.metric.tempLow }
-    val maxTemperature = maxBy { it.metric.tempHigh }
+    val realValues = filter { !it.isNoData }
+    val minTemperature = realValues.minBy { it.metric.tempLow }
+    val maxTemperature = realValues.maxBy { it.metric.tempHigh }
+    val maxUV = realValues.maxBy { it.uvHigh }
+    val maxRadiation = realValues.maxBy { it.solarRadiationHigh }
     val maxTemperatures =
         map { it.dateTimeLocal.date to it.metric.tempHigh }.sortedBy { it.first.toEpochDays() }
     val avgTemperatures =
@@ -196,16 +202,24 @@ fun List<HistoryObservation>.toTabData(
         startDate = maxTemperatures.firstOrNull()?.first ?: Clock.System.now().toLocalDateTime(
             TimeZone.UTC
         ).date,
-        maxTemperature = maxTemperature.metric.tempHigh,
-        minTemperature = minTemperature.metric.tempLow,
-        maxDate = maxTemperature.dateTimeLocal.date,
-        minDate = minTemperature.dateTimeLocal.date,
-        tempChart = ChartState(
-            observations = this,
-            tempChartSets = tempChartSets,
-            selectedEntries = null,
-            bottomLabels = bottomLabels(tab),
-            tempChartModel = tempChartModel.toChartModel(tab.daysCount)
+        uv = UvState(
+            maxUvIndex = maxUV.uvHigh.toInt(),
+            maxRadiation = maxRadiation.solarRadiationHigh,
+            maxUvDate = maxUV.dateTimeLocal.date,
+            maxRadiationDate = maxRadiation.dateTimeLocal.date,
+        ),
+        temperature = TemperatureState(
+            maxTemperature = maxTemperature.metric.tempHigh,
+            minTemperature = minTemperature.metric.tempLow,
+            maxDate = maxTemperature.dateTimeLocal.date,
+            minDate = minTemperature.dateTimeLocal.date,
+            tempChart = ChartState(
+                observations = this,
+                tempChartSets = tempChartSets,
+                selectedEntries = null,
+                bottomLabels = bottomLabels(tab),
+                tempChartModel = tempChartModel.toChartModel(tab.daysCount)
+            )
         ),
     )
 }
