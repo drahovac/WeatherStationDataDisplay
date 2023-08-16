@@ -33,6 +33,7 @@ import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.theme.rememberChartStyle
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelField
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueField
+import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueFieldWithUnits
 import com.drahovac.weatherstationdisplay.android.ui.component.MarkerLineComponent
 import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
@@ -114,13 +115,14 @@ private fun ScreenContent(
                 .verticalScroll(rememberScrollState())
         ) {
             tabData?.let { IntervalInfo(tabData, state.selectedTab) }
-            Overview(tabData)
+            tabData?.let { Overview(tabData) }
 
             Spacer(modifier = Modifier.height(32.dp))
             state.currentTabData?.takeIf { it.temperature.tempChart.hasMultipleItems }
                 ?.let {
                     TemperatureChart(it.temperature.tempChart, actions)
                 }
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -344,62 +346,66 @@ private fun rememberStartAxisLabel() = axisLabelComponent(
 )
 
 @Composable
-private fun Overview(tabData: HistoryTabState?) {
+private fun Overview(tabData: HistoryTabState) {
     Row(
         Modifier
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
     ) {
         Column(Modifier.weight(1f)) {
-            val maxDate = tabData?.temperature?.maxDate?.toFormattedDate()?.let {
+            val maxDate = tabData.temperature.maxDate.toFormattedDate().let {
                 "${stringResource(MR.strings.history_min_on.resourceId)} $it"
             }
-            val maxUVDate = tabData?.uv?.maxUvDate?.toFormattedDate()?.let {
+            val maxUVDate = tabData.uv.maxUvDate.toFormattedDate().let {
+                "${stringResource(MR.strings.history_min_on.resourceId)} $it"
+            }
+            val maxWindDate = tabData.maxWindSpeedDate.toFormattedDate().let {
                 "${stringResource(MR.strings.history_min_on.resourceId)} $it"
             }
             LabelValueField(
                 label = stringResource(id = MR.strings.history_max_temperature.resourceId),
-                value = tabData?.temperature?.maxTemperature?.toString().orEmpty()
+                value = tabData.temperature.maxTemperature.toString().orEmpty()
             )
-            LabelField(label = maxDate.orEmpty())
+            LabelField(label = maxDate)
             Spacer(modifier = Modifier.height(8.dp))
             LabelValueField(
                 label = stringResource(id = MR.strings.history_high_uv_index.resourceId),
-                value = tabData?.uv?.maxUvIndex?.toString().orEmpty()
+                value = tabData.uv.maxUvIndex.toString().orEmpty()
             )
-            LabelField(label = maxUVDate.orEmpty())
+            LabelField(label = maxUVDate)
+            Spacer(modifier = Modifier.height(8.dp))
+            LabelValueFieldWithUnits(
+                label = stringResource(id = MR.strings.history_high_wind.resourceId),
+                value = tabData.maxWindSpeed.toString(),
+                units = stringResource(id = MR.strings.current_km_h.resourceId),
+            )
+            LabelField(label = maxUVDate)
         }
         Column(Modifier.weight(1f)) {
-            val minDate = tabData?.temperature?.minDate?.toFormattedDate()?.let {
+            val minDate = tabData.temperature.minDate.toFormattedDate().let {
                 "${stringResource(MR.strings.history_min_on.resourceId)} $it"
             }
-            val maxRadiationDate = tabData?.uv?.maxRadiationDate?.toFormattedDate()?.let {
+            val maxRadiationDate = tabData.uv.maxRadiationDate.toFormattedDate().let {
                 "${stringResource(MR.strings.history_min_on.resourceId)} $it"
             }
             LabelValueField(
                 label = stringResource(id = MR.strings.history_min_temperature.resourceId),
-                value = tabData?.temperature?.minTemperature?.toString().orEmpty()
+                value = tabData.temperature.minTemperature.toString()
             )
-            LabelField(label = minDate.orEmpty())
+            LabelField(label = minDate)
             Spacer(modifier = Modifier.height(8.dp))
-            LabelField(stringResource(id = MR.strings.history_max_solar_radiation.resourceId))
-            Row {
-                Text(
-                    modifier = Modifier.alignByBaseline(),
-                    text = tabData?.uv?.maxRadiation?.toString().orEmpty(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 4.dp)
-                        .alignByBaseline(),
-                    text = stringResource(id = MR.strings.current_radiation_units.resourceId),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-            LabelField(label = maxRadiationDate.orEmpty())
+            LabelValueFieldWithUnits(
+                label = stringResource(id = MR.strings.history_max_solar_radiation.resourceId),
+                value = tabData.uv.maxRadiation.toString(),
+                units = stringResource(id = MR.strings.current_radiation_units.resourceId),
+            )
+            LabelField(label = maxRadiationDate)
+            Spacer(modifier = Modifier.height(8.dp))
+            LabelValueFieldWithUnits(
+                label = stringResource(id = MR.strings.history_high_presc_total.resourceId),
+                value = tabData.prescriptionForPeriod.toString(),
+                units = stringResource(id = MR.strings.current_mm.resourceId),
+            )
         }
     }
 }

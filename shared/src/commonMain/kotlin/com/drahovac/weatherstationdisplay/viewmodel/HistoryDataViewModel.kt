@@ -192,6 +192,8 @@ fun List<HistoryObservation>.toTabData(
         map { it.dateTimeLocal.date to it.metric.tempAvg }.sortedBy { it.first.toEpochDays() }
     val minTemperatures =
         map { it.dateTimeLocal.date to it.metric.tempLow }.sortedBy { it.first.toEpochDays() }
+    val prescriptionForPeriod = realValues.sumOf { it.metric.precipTotal }
+    val windSpeedMax = realValues.maxBy { it.metric.windspeedHigh }
     val tempChartModel = listOfNotNull(
         maxTemperatures.takeIf { tempChartSets.isMaxAllowed },
         avgTemperatures.takeIf { tempChartSets.isAvgAllowed },
@@ -221,6 +223,9 @@ fun List<HistoryObservation>.toTabData(
                 tempChartModel = tempChartModel.toChartModel(tab.daysCount)
             )
         ),
+        maxWindSpeed = windSpeedMax.metric.windspeedHigh,
+        maxWindSpeedDate = windSpeedMax.dateTimeLocal.date,
+        prescriptionForPeriod = prescriptionForPeriod,
     )
 }
 

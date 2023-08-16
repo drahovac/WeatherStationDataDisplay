@@ -78,4 +78,6 @@
     <string name="history_min_on">dne</string>
     <string name="history_max_solar_radiation">Nejvyšší sluneční záření</string>
     <string name="history_high_uv_index">Nejvyšší UV Index</string>
+    <string name="history_high_presc_total">Celkové srážky za období</string>
+    <string name="history_high_wind">Nejvyšší rychlost větru</string>
 </resources>

@@ -28,6 +28,9 @@ data class HistoryTabState(
     val startDate: LocalDate,
     val temperature: TemperatureState,
     val uv: UvState,
+    val prescriptionForPeriod: Double,
+    val maxWindSpeed: Double,
+    val maxWindSpeedDate: LocalDate,
 )
 
 data class TemperatureState(
