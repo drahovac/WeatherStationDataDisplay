@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.FabPosition
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -76,7 +76,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         WeatherTheme {
             Scaffold(
-                isFloatingActionButtonDocked = true,
                 floatingActionButtonPosition = FabPosition.Center,
                 bottomBar = {
                     BottomNavigation(navController)
@@ -168,7 +167,9 @@ private fun BottomNavigation(navController: NavHostController) {
                         contentDescription = null
                     )
                 },
-                label = { Text(stringResource(id = MR.strings.history_nav.resourceId)) },
+                label = {
+                    Text(text = stringResource(id = MR.strings.history_nav.resourceId))
+                },
                 selected = destination == Destination.History,
                 onClick = {
                     navController.popCurrent(Destination.History)
