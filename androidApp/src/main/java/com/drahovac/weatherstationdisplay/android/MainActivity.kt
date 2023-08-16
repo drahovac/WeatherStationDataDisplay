@@ -6,15 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -76,6 +75,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         WeatherTheme {
             Scaffold(
+                containerColor = Color.Transparent,
                 floatingActionButtonPosition = FabPosition.Center,
                 bottomBar = {
                     BottomNavigation(navController)
@@ -107,15 +107,10 @@ private fun MainContent(
     navController: NavHostController
 ) {
     val systemUiController = rememberSystemUiController()
-    systemUiController.setStatusBarColor(
-        if (navController.currentBackStackEntryAsState().value?.destination?.route == Destination.History.route()) {
-            MaterialTheme.colorScheme.surface
-        } else Color.Transparent
-    )
+    systemUiController.setStatusBarColor(MaterialTheme.colorScheme.surface)
 
     nextDestination?.let { dest ->
         NavHost(
-            modifier = Modifier.statusBarsPadding(),
             navController = navController,
             startDestination = dest.route()
         ) {
