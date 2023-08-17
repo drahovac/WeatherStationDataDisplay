@@ -85,4 +85,6 @@
     <string name="history_high_uv_index">High UV Index</string>
     <string name="history_high_presc_total">Total Precipitation for Period</string>
     <string name="history_high_wind">Maximum Wind Speed</string>
+    <string name="history_max_pressure">Max pressure</string>
+    <string name="history_min_pressure">Min pressure</string>
 </resources>

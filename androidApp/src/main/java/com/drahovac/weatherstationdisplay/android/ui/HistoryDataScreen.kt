@@ -47,6 +47,8 @@ import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataState
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryTab
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryTabState
+import com.drahovac.weatherstationdisplay.viewmodel.PressureChartSelection
+import com.drahovac.weatherstationdisplay.viewmodel.PressureSets
 import com.drahovac.weatherstationdisplay.viewmodel.TempChartSelection
 import com.drahovac.weatherstationdisplay.viewmodel.TempChartSets
 import com.drahovac.weatherstationdisplay.viewmodel.toTabData
@@ -122,6 +124,11 @@ private fun ScreenContent(
                 ?.let {
                     TemperatureChart(it.temperature.tempChart, actions)
                 }
+            Spacer(modifier = Modifier.height(16.dp))
+            state.currentTabData?.takeIf { it.pressure.chart.hasMultipleItems }
+                ?.let {
+                    PressureChart(it.pressure.chart, actions)
+                }
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
@@ -129,7 +136,7 @@ private fun ScreenContent(
 
 @Composable
 private fun TemperatureChart(
-    chartState: ChartState<TempChartSelection>,
+    chartState: ChartState<TempChartSelection, TempChartSets>,
     actions: HistoryDataActions
 ) {
     val degree = stringResource(id = MR.strings.current_degree_celsius.resourceId)
@@ -145,8 +152,8 @@ private fun TemperatureChart(
     Row {
         Column(Modifier.weight(1f)) {
             TempChartLegend(
-                chartColors = chartColors,
-                tempChartSets = chartState.tempChartSets,
+                chartColors = tempChartColors,
+                tempChartSets = chartState.chartSets,
                 actions = actions
             )
         }
@@ -183,7 +190,7 @@ private fun TemperatureChart(
         }
     }
 
-    val colors = chartColors.filterSets(chartState.tempChartSets)
+    val colors = tempChartColors.filterSets(chartState.chartSets)
     ProvideChartStyle(rememberChartStyle(colors)) {
         Chart(
             modifier = Modifier
@@ -240,7 +247,7 @@ private fun TemperatureChart(
             chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
             autoScaleUp = AutoScaleUp.Full,
             horizontalLayout = HorizontalLayout.FullWidth(),
-            model = chartState.tempChartModel,
+            model = chartState.chartModel,
         )
     }
     Row(Modifier.padding(horizontal = 4.dp)) {
@@ -254,7 +261,130 @@ private fun TemperatureChart(
                 Text(text = it, fontSize = AXIS_LABEL_SIZE.sp)
             }
         }
+    }
+}
 
+@Composable
+private fun PressureChart(
+    chartState: ChartState<PressureChartSelection, PressureSets>,
+    actions: HistoryDataActions
+) {
+    Text(
+        modifier = Modifier
+            .padding(horizontal = 2.dp)
+            .padding(bottom = 4.dp),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        text = stringResource(id = MR.strings.current_pressure.resourceId)
+    )
+
+    Row {
+        Column(Modifier.weight(1f)) {
+            PressureChartLegend(
+                chartColors = pressureChartColors,
+                pressureSets = chartState.chartSets,
+                actions = actions
+            )
+        }
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = 4.dp)
+        ) {
+            chartState.selectedEntries?.let { selection ->
+                Text(
+                    text = selection.date.toFormattedDate(),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                selection.maxPressure?.let {
+                    PressureEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_max_pressure.resourceId
+                    )
+                }
+                selection.minPressure?.let {
+                    PressureEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_min_pressure.resourceId
+                    )
+                }
+            }
+        }
+    }
+
+    val colors = tempChartColors.filterPressureSets(chartState.chartSets)
+    val hpa = stringResource(id = MR.strings.current_hpa.resourceId)
+    ProvideChartStyle(rememberChartStyle(colors)) {
+        Chart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 8.dp),
+            chart = lineChart(
+                axisValuesOverrider = object : AxisValuesOverrider<ChartEntryModel> {
+                    override fun getMinY(model: ChartEntryModel): Float {
+                        return model.minY
+                    }
+                }
+            ),
+            startAxis = startAxis(
+                maxLabelCount = 6,
+                label = rememberStartAxisLabel(),
+                horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
+                valueFormatter = { value, _ ->
+                    "$value$hpa"
+                }
+            ),
+            marker = rememberMarker(),
+            markerVisibilityChangeListener = object : MarkerVisibilityChangeListener {
+                override fun onMarkerShown(
+                    marker: Marker,
+                    markerEntryModels: List<Marker.EntryModel>
+                ) {
+                    super.onMarkerShown(marker, markerEntryModels)
+                    actions.selectPressurePoints(
+                        markerEntryModels.map { it.entry },
+                        markerEntryModels.firstOrNull()?.index ?: 0
+                    )
+                }
+
+                override fun onMarkerHidden(marker: Marker) {
+                    super.onMarkerHidden(marker)
+                    actions.selectTempPoints(emptyList(), 0)
+                }
+
+                override fun onMarkerMoved(
+                    marker: Marker,
+                    markerEntryModels: List<Marker.EntryModel>
+                ) {
+                    super.onMarkerMoved(marker, markerEntryModels)
+                    actions.selectTempPoints(
+                        markerEntryModels.map { it.entry },
+                        markerEntryModels.firstOrNull()?.index ?: 0
+                    )
+                }
+            },
+            bottomAxis = bottomAxis(
+                label = null,
+                itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
+            ),
+            chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
+            autoScaleUp = AutoScaleUp.Full,
+            horizontalLayout = HorizontalLayout.FullWidth(),
+            model = chartState.chartModel,
+        )
+    }
+    Row(Modifier.padding(horizontal = 4.dp)) {
+        Text(
+            text = "30.0°C",
+            fontSize = AXIS_LABEL_SIZE.sp,
+            modifier = Modifier.alpha(0f)
+        ) // Spacer for vert. axis
+        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
+            chartState.bottomLabels.forEach {
+                Text(text = it, fontSize = AXIS_LABEL_SIZE.sp)
+            }
+        }
     }
 }
 
@@ -271,11 +401,31 @@ private fun TemperatureEntryLine(value: ChartEntry, @StringRes labelId: Int) {
     )
 }
 
+@Composable
+private fun PressureEntryLine(value: ChartEntry, @StringRes labelId: Int) {
+    Text(
+        text = "${stringResource(labelId)} : ${value.y}${
+            stringResource(
+                id = MR.strings.current_hpa.resourceId
+            )
+        }",
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        style = MaterialTheme.typography.bodyMedium
+    )
+}
+
 private fun List<Color>.filterSets(tempChartSets: TempChartSets): List<Color> {
     return listOfNotNull(
         this[0].takeIf { tempChartSets.isMaxAllowed },
         this[1].takeIf { tempChartSets.isAvgAllowed },
         this[2].takeIf { tempChartSets.isMinAllowed },
+    ).takeUnless { it.isEmpty() } ?: this
+}
+
+private fun List<Color>.filterPressureSets(pressureSets: PressureSets): List<Color> {
+    return listOfNotNull(
+        this[0].takeIf { pressureSets.isMaxAllowed },
+        this[1].takeIf { pressureSets.isMinAllowed },
     ).takeUnless { it.isEmpty() } ?: this
 }
 
@@ -302,6 +452,26 @@ private fun TempChartLegend(
         color = chartColors[2],
         checked = tempChartSets.isMinAllowed,
         onClick = { actions.selectMinTempChart(it) },
+    )
+}
+
+@Composable
+private fun PressureChartLegend(
+    pressureSets: PressureSets,
+    chartColors: List<Color>,
+    actions: HistoryDataActions,
+) {
+    LegendLine(
+        label = stringResource(id = MR.strings.history_max_pressure.resourceId),
+        color = chartColors.first(),
+        checked = pressureSets.isMaxAllowed,
+        onClick = { actions.selectMaxPressureChart(it) },
+    )
+    LegendLine(
+        label = stringResource(id = MR.strings.history_min_pressure.resourceId),
+        color = chartColors[1],
+        checked = pressureSets.isMinAllowed,
+        onClick = { actions.selectMinPressureChart(it) },
     )
 }
 
@@ -379,7 +549,7 @@ private fun Overview(tabData: HistoryTabState) {
                 value = tabData.maxWindSpeed.toString(),
                 units = stringResource(id = MR.strings.current_km_h.resourceId),
             )
-            LabelField(label = maxUVDate)
+            LabelField(label = maxWindDate)
         }
         Column(Modifier.weight(1f)) {
             val minDate = tabData.temperature.minDate.toFormattedDate().let {
@@ -538,6 +708,7 @@ fun HistoryDataScreenPreview() {
                 tabData = mapOf(
                     HistoryTab.MONTH to listOf(observation).toTabData(
                         TempChartSets(),
+                        PressureSets(),
                         HistoryTab.MONTH,
                     )
                 ),
@@ -548,10 +719,17 @@ fun HistoryDataScreenPreview() {
 }
 
 
-private val chartColors
+private val tempChartColors
     @Composable
     get() = listOf(
         MaterialTheme.colorScheme.error,
         MaterialTheme.colorScheme.secondary,
         MaterialTheme.colorScheme.primary,
+    )
+
+private val pressureChartColors
+    @Composable
+    get() = listOf(
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.secondary
     )

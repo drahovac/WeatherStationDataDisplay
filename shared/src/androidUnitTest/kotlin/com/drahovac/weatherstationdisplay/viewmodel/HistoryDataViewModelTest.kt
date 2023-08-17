@@ -76,6 +76,8 @@ class HistoryDataViewModelTest {
             assertEquals(MAX_TEMP_MONTH, it.tabData[HistoryTab.MONTH]!!.temperature.maxTemperature)
             assertEquals(MAX_RADIATION_MONTH, it.tabData[HistoryTab.MONTH]!!.uv.maxRadiation)
             assertEquals(MAX_UV_MONTH.toInt(), it.tabData[HistoryTab.MONTH]!!.uv.maxUvIndex)
+            assertEquals(PRESSURE_MAX, it.tabData[HistoryTab.MONTH]!!.pressure.maxPressure)
+            assertEquals(PRESSURE_MIN, it.tabData[HistoryTab.MONTH]!!.pressure.minPressure)
         }
     }
 
@@ -101,10 +103,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMaxTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.temperature.tempChart.tempChartModel.entries.size)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMinAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isAvgAllowed)
+            assertEquals(2, it.temperature.tempChart.chartModel.entries.size)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMinAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isAvgAllowed)
         }
     }
 
@@ -113,10 +115,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMinTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.temperature.tempChart.tempChartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isAvgAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMinAllowed)
+            assertEquals(2, it.temperature.tempChart.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isAvgAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMinAllowed)
         }
     }
 
@@ -125,10 +127,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectAvgTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.temperature.tempChart.tempChartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isAvgAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.tempChartSets.isMaxAllowed)
+            assertEquals(2, it.temperature.tempChart.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isAvgAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
         }
     }
 
@@ -228,8 +230,15 @@ class HistoryDataViewModelTest {
         const val MAX_UV_MONTH = 12.0
         const val MAX_RADIATION_MONTH = 20000.0
         const val MIN_TEMP = -13.0
+        const val PRESSURE_MAX = 1500.0
+        const val PRESSURE_MIN = 15.0
         val METRIC1 = historyMetricPrototype.copy(tempHigh = MAX_TEMP_YESTERDAY, tempLow = MIN_TEMP)
-        val METRIC2 = historyMetricPrototype.copy(tempHigh = MAX_TEMP, tempLow = 10.0)
+        val METRIC2 = historyMetricPrototype.copy(
+            tempHigh = MAX_TEMP,
+            tempLow = 10.0,
+            pressureMax = PRESSURE_MAX,
+            pressureMin = PRESSURE_MIN
+        )
         val METRIC3 = historyMetricPrototype.copy(tempHigh = MAX_TEMP_MONTH, tempLow = 10.0)
 
         val HISTORY1 = historyObservationPrototype.copy(metric = METRIC1)

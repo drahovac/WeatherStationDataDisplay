@@ -18,6 +18,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
@@ -42,7 +43,11 @@ class HistoryDataViewModel(
                     isLoading = false,
                     selectedTab = HistoryTab.WEEK,
                     tabData = mapOf(
-                        HistoryTab.WEEK to fetchTabData(HistoryTab.WEEK, TempChartSets())
+                        HistoryTab.WEEK to fetchTabData(
+                            HistoryTab.WEEK,
+                            TempChartSets(),
+                            PressureSets()
+                        )
                     )
                 )
             }
@@ -56,7 +61,7 @@ class HistoryDataViewModel(
         viewModelScope.coroutineScope.launch {
             _state.update { currentState ->
                 val tabData =
-                    currentState.tabData[tab] ?: fetchTabData(tab, TempChartSets())
+                    currentState.tabData[tab] ?: fetchTabData(tab, TempChartSets(), PressureSets())
                 val tabMap = currentState.tabData.toMutableMap().apply {
                     put(tab, tabData)
                 }
@@ -72,19 +77,28 @@ class HistoryDataViewModel(
     override fun selectMaxTempChart(isSelected: Boolean) {
         _state.update {
             val tempChartSets =
-                it.currentTabData?.temperature?.tempChart?.tempChartSets?.copy(isMaxAllowed = isSelected)
-            val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMaxAllowed = isSelected))
+                it.currentTabData?.temperature?.tempChart?.chartSets?.copy(isMaxAllowed = isSelected)
+            val tabData = getTabData(
+                it,
+                tempChartSets ?: TempChartSets(isMaxAllowed = isSelected),
+                defaultPressureSets(it)
+            )
             it.copy(tabData = tabData)
         }
     }
 
+    private fun defaultPressureSets(state: HistoryDataState) =
+        state.currentTabData?.pressure?.chart?.chartSets ?: PressureSets()
+
     private fun getTabData(
         state: HistoryDataState,
-        tempChartSets: TempChartSets
+        tempChartSets: TempChartSets,
+        pressureChartSets: PressureSets,
     ): MutableMap<HistoryTab, HistoryTabState?> {
         return getTabData(state) {
             it.temperature.tempChart.observations.toTabData(
                 tempChartSets,
+                pressureChartSets,
                 state.selectedTab
             ) ?: it
         }
@@ -106,17 +120,33 @@ class HistoryDataViewModel(
     override fun selectMinTempChart(isSelected: Boolean) {
         _state.update {
             val tempChartSets =
-                it.currentTabData?.temperature?.tempChart?.tempChartSets?.copy(isMinAllowed = isSelected)
-            val tabData = getTabData(it, tempChartSets ?: TempChartSets(isMinAllowed = isSelected))
+                it.currentTabData?.temperature?.tempChart?.chartSets?.copy(isMinAllowed = isSelected)
+            val tabData = getTabData(
+                it,
+                tempChartSets ?: TempChartSets(isMinAllowed = isSelected),
+                defaultPressureSets(it)
+            )
             it.copy(tabData = tabData)
         }
+    }
+
+    override fun selectMaxPressureChart(isSelected: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun selectMinPressureChart(isSelected: Boolean) {
+        TODO("Not yet implemented")
     }
 
     override fun selectAvgTempChart(isSelected: Boolean) {
         _state.update {
             val tempChartSets =
-                it.currentTabData?.temperature?.tempChart?.tempChartSets?.copy(isAvgAllowed = isSelected)
-            val tabData = getTabData(it, tempChartSets ?: TempChartSets(isAvgAllowed = isSelected))
+                it.currentTabData?.temperature?.tempChart?.chartSets?.copy(isAvgAllowed = isSelected)
+            val tabData = getTabData(
+                it,
+                tempChartSets ?: TempChartSets(isAvgAllowed = isSelected),
+                defaultPressureSets(it)
+            )
             it.copy(tabData = tabData)
         }
     }
@@ -127,7 +157,7 @@ class HistoryDataViewModel(
                 val tempChart = tabState.temperature.tempChart.copy(
                     selectedEntries = getSelectedEntries(
                         points,
-                        tabState.temperature.tempChart.tempChartSets,
+                        tabState.temperature.tempChart.chartSets,
                         tabState.startDate.plus(dayIndex, DateTimeUnit.DAY)
                     )
                 )
@@ -138,6 +168,10 @@ class HistoryDataViewModel(
                 )
             })
         }
+    }
+
+    override fun selectPressurePoints(points: List<ChartPointEntry>, dayIndex: Int) {
+        // TODO
     }
 
     private fun getSelectedEntries(
@@ -164,6 +198,7 @@ class HistoryDataViewModel(
     private suspend fun fetchTabData(
         tab: HistoryTab,
         tempChartSets: TempChartSets,
+        pressureChartSets: PressureSets,
     ): HistoryTabState? {
         return withContext(defaultDispatcher) {
             when (tab) {
@@ -171,35 +206,44 @@ class HistoryDataViewModel(
                 HistoryTab.WEEK -> historyUseCase.getWeekHistory()
                 HistoryTab.MONTH -> historyUseCase.getMonthHistory()
             }
-        }.toTabData(tempChartSets, tab)
+        }.toTabData(tempChartSets, pressureChartSets, tab)
     }
 }
 
 fun List<HistoryObservation>.toTabData(
     tempChartSets: TempChartSets,
+    pressureSets: PressureSets,
     tab: HistoryTab,
 ): HistoryTabState? {
     Logger.d("Loaded observations $this")
     if (isEmpty()) return null
-    val realValues = filter { !it.isNoData }
-    val minTemperature = realValues.minBy { it.metric.tempLow }
-    val maxTemperature = realValues.maxBy { it.metric.tempHigh }
-    val maxUV = realValues.maxBy { it.uvHigh }
-    val maxRadiation = realValues.maxBy { it.solarRadiationHigh }
+    val minTemperature = minBy { it.metric.tempLow }
+    val maxTemperature = maxBy { it.metric.tempHigh }
+    val maxUV = maxBy { it.uvHigh }
+    val maxRadiation = maxBy { it.solarRadiationHigh }
     val maxTemperatures =
         map { it.dateTimeLocal.date to it.metric.tempHigh }.sortedBy { it.first.toEpochDays() }
     val avgTemperatures =
         map { it.dateTimeLocal.date to it.metric.tempAvg }.sortedBy { it.first.toEpochDays() }
     val minTemperatures =
         map { it.dateTimeLocal.date to it.metric.tempLow }.sortedBy { it.first.toEpochDays() }
-    val prescriptionForPeriod = realValues.sumOf { it.metric.precipTotal }
-    val windSpeedMax = realValues.maxBy { it.metric.windspeedHigh }
+    val prescriptionForPeriod = sumOf { it.metric.precipTotal }
+    val windSpeedMax = maxBy { it.metric.windspeedHigh }
     val tempChartModel = listOfNotNull(
         maxTemperatures.takeIf { tempChartSets.isMaxAllowed },
         avgTemperatures.takeIf { tempChartSets.isAvgAllowed },
         minTemperatures.takeIf { tempChartSets.isMinAllowed },
     )
-    // TODO compute min and max here
+    val maxPressure = maxBy { it.metric.pressureMax }
+    val maxPressures =
+        map { it.dateTimeLocal.date to it.metric.pressureMax }.sortedBy { it.first.toEpochDays() }
+    val minPressure = minBy { it.metric.pressureMin }
+    val minPressures =
+        map { it.dateTimeLocal.date to it.metric.pressureMin }.sortedBy { it.first.toEpochDays() }
+    val pressureModel = listOfNotNull(
+        maxPressures.takeIf { pressureSets.isMaxAllowed },
+        minPressures.takeIf { pressureSets.isMinAllowed },
+    )
     return HistoryTabState(
         startDate = maxTemperatures.firstOrNull()?.first ?: Clock.System.now().toLocalDateTime(
             TimeZone.UTC
@@ -217,11 +261,24 @@ fun List<HistoryObservation>.toTabData(
             minDate = minTemperature.dateTimeLocal.date,
             tempChart = ChartState(
                 observations = this,
-                tempChartSets = tempChartSets,
+                chartSets = tempChartSets,
                 selectedEntries = null,
                 bottomLabels = bottomLabels(tab),
-                tempChartModel = tempChartModel.toChartModel(tab.daysCount)
+                chartModel = tempChartModel.toChartModel(tab.daysCount, 0f, 25f)
             )
+        ),
+        pressure = PressureState(
+            maxPressure = maxPressure.metric.pressureMax,
+            maxPressureDate = maxPressure.dateTimeLocal.date,
+            minPressure = minPressure.metric.pressureMin,
+            minPressureDate = maxPressure.dateTimeLocal.date,
+            chart = ChartState(
+                observations = this,
+                chartSets = pressureSets,
+                selectedEntries = null,
+                bottomLabels = bottomLabels(tab),
+                chartModel = pressureModel.toChartModel(tab.daysCount, 1000f, 1025f)
+            ),
         ),
         maxWindSpeed = windSpeedMax.metric.windspeedHigh,
         maxWindSpeedDate = windSpeedMax.dateTimeLocal.date,
@@ -230,17 +287,17 @@ fun List<HistoryObservation>.toTabData(
 }
 
 private fun List<HistoryObservation>.bottomLabels(tab: HistoryTab): List<String> {
-    val minDate = minBy { it.obsTimeUtc }
-    val maxDate = maxBy { it.obsTimeUtc }
+    val minDate = minBy { it.obsTimeUtc }.dateTimeLocal.date
+    val maxDate = minDate.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
     return when (tab) {
         HistoryTab.MONTH -> listOf(
-            minDate.dateTimeLocal.date.toFormattedDate(),
-            maxDate.dateTimeLocal.date.toFormattedDate()
+            minDate.toFormattedDate(),
+            maxDate.toFormattedDate()
         )
 
         HistoryTab.YESTERDAY -> emptyList()
         HistoryTab.WEEK -> return List(7) { it }.map {
-            minDate.dateTimeLocal.date.plus(it, DateTimeUnit.DAY).toLocalizedShortDayName()
+            minDate.plus(it, DateTimeUnit.DAY).toLocalizedShortDayName()
         }
     }
 }
@@ -259,7 +316,13 @@ interface HistoryDataActions {
 
     fun selectMinTempChart(isSelected: Boolean)
 
+    fun selectMaxPressureChart(isSelected: Boolean)
+
+    fun selectMinPressureChart(isSelected: Boolean)
+
     fun selectAvgTempChart(isSelected: Boolean)
 
     fun selectTempPoints(points: List<ChartPointEntry>, dayIndex: Int)
+
+    fun selectPressurePoints(points: List<ChartPointEntry>, dayIndex: Int)
 }

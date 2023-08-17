@@ -11,18 +11,23 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-actual class ChartModel(models: List<LineChartEntryModel>, defaultDaysCount: Float) :
+actual class ChartModel(
+    models: List<LineChartEntryModel>,
+    defaultDaysCount: Float,
+    minY: Float = 0f,
+    maxY: Float = 25f
+) :
     ComposedChartEntryModel<LineChartEntryModel> {
     override val composedEntryCollections: List<LineChartEntryModel> = models
     override val entries: List<List<ChartEntry>> = models.map { it.entries.first() }
-    override val minX: Float = models.minOfOrNull { it.minX } ?: 0f
-    override val maxX: Float = models.maxOfOrNull { it.maxX } ?: defaultDaysCount
+    override val minX: Float = 0f
+    override val maxX: Float = defaultDaysCount
     override val minY: Float =
-        models.minOfOrNull { entry -> entry.minY.roundToInt().let { it - (it % 5) }.toFloat() }
-            ?: 0f
+        models.minOfOrNull { entry -> entry.minY.roundToInt().let { it - 5 - (it % 5) }.toFloat() }
+            ?: minY
     override val maxY: Float =
         models.maxOfOrNull { entry -> entry.maxY.roundToInt().let { it + 5 - (it % 5) }.toFloat() }
-            ?: 25f
+            ?: maxY
     override val stackedPositiveY: Float = models.maxOfOrNull { it.stackedPositiveY } ?: 1f
     override val stackedNegativeY: Float = models.minOfOrNull { it.stackedNegativeY } ?: 0f
     override val xGcd: Float = models.fold<LineChartEntryModel, Float?>(null) { gcd, model ->
@@ -47,7 +52,10 @@ class LineChartEntryModel(
     override val id: Int = chartEntries.map { it.x + it.y }.hashCode()
 }
 
-actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Float): ChartModel {
+actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(
+    defaultDaysCount: Float,
+    minY: Float,
+    maxY: Float): ChartModel {
     val models = this.map {
         var firstDate = 0f
         LineChartEntryModel(it.mapIndexed { index, pair ->
@@ -60,7 +68,7 @@ actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Fl
         })
     }
 
-    return ChartModel(models, defaultDaysCount)
+    return ChartModel(models, defaultDaysCount,minY,maxY)
 }
 
 internal fun Iterable<Iterable<ChartEntry>>.calculateXGcd(): Float {

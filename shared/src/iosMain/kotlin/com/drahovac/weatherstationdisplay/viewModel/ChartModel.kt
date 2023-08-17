@@ -6,6 +6,9 @@ actual class ChartModel
 
 actual interface ChartPointEntry
 
-actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Float): ChartModel {
+actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(
+    defaultDaysCount: Float, minY: Float,
+    maxY: Float
+): ChartModel {
     return ChartModel()
 }

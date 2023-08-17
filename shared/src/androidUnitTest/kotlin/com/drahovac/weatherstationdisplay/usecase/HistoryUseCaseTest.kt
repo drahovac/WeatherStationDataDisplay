@@ -1,9 +1,7 @@
 package com.drahovac.weatherstationdisplay.usecase
 
 import com.drahovac.weatherstationdisplay.data.Database
-import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
-import com.drahovac.weatherstationdisplay.domain.getEmptyObservation
 import com.drahovac.weatherstationdisplay.domain.historyObservationPrototype
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -116,12 +114,6 @@ class HistoryUseCaseTest {
         assertEquals(
             listOf(
                 HISTORY,
-                HistoryObservation.getEmptyObservation(LocalDate.parse("2023-08-01")),
-                HistoryObservation.getEmptyObservation(LocalDate.parse("2023-08-02")),
-                HistoryObservation.getEmptyObservation(LocalDate.parse("2023-08-03")),
-                HistoryObservation.getEmptyObservation(LocalDate.parse("2023-08-04")),
-                HistoryObservation.getEmptyObservation(LocalDate.parse("2023-08-05")),
-                HistoryObservation.getEmptyObservation(LocalDate.parse("2023-08-06")),
             ), result
         )
 

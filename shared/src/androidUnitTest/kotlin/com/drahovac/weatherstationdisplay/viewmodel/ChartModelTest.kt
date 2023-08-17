@@ -12,10 +12,10 @@ class ChartModelTest {
 
     @Test
     fun `return correct min max values`() {
-        assertEquals(3f, model.minX)
-        assertEquals(40f, model.maxX)
+        assertEquals(0f, model.minX)
+        assertEquals(6f, model.maxX)
         assertEquals(20f, model.maxY)
-        assertEquals(0f, model.minY)
+        assertEquals(-5f, model.minY)
     }
 
     @Test

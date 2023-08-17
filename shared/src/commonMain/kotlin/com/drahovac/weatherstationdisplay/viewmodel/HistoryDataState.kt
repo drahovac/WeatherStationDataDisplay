@@ -20,6 +20,13 @@ data class TempChartSets(
     fun isNotEmpty() = isMaxAllowed || isMinAllowed || isAvgAllowed
 }
 
+data class PressureSets(
+    val isMaxAllowed: Boolean = true,
+    val isMinAllowed: Boolean = true,
+) {
+    fun isNotEmpty() = isMaxAllowed || isMinAllowed
+}
+
 enum class HistoryTab {
     YESTERDAY, WEEK, MONTH
 }
@@ -28,6 +35,7 @@ data class HistoryTabState(
     val startDate: LocalDate,
     val temperature: TemperatureState,
     val uv: UvState,
+    val pressure: PressureState,
     val prescriptionForPeriod: Double,
     val maxWindSpeed: Double,
     val maxWindSpeedDate: LocalDate,
@@ -38,7 +46,7 @@ data class TemperatureState(
     val maxDate: LocalDate,
     val minTemperature: Double,
     val minDate: LocalDate,
-    val tempChart: ChartState<TempChartSelection>,
+    val tempChart: ChartState<TempChartSelection, TempChartSets>,
 )
 
 data class UvState(
@@ -48,12 +56,20 @@ data class UvState(
     val maxRadiationDate: LocalDate,
 )
 
-data class ChartState<T : ChartSelection>(
+data class PressureState(
+    val maxPressure: Double,
+    val maxPressureDate: LocalDate,
+    val minPressure: Double,
+    val minPressureDate: LocalDate,
+    val chart: ChartState<PressureChartSelection, PressureSets>,
+)
+
+data class ChartState<T : ChartSelection, S>(
     val observations: List<HistoryObservation>,
-    val tempChartSets: TempChartSets = TempChartSets(),
+    val chartSets: S,
     val selectedEntries: T? = null,
     val bottomLabels: List<String> = emptyList(),
-    val tempChartModel: ChartModel
+    val chartModel: ChartModel
 ) {
     val hasMultipleItems: Boolean
         get() = observations.size > 1 // cannot show chart with single value (lib is bad)
@@ -68,8 +84,18 @@ data class TempChartSelection(
     val date: LocalDate
 ) : ChartSelection
 
+data class PressureChartSelection(
+    val maxPressure: ChartPointEntry?,
+    val minPressure: ChartPointEntry?,
+    val trend: Double?,
+    val date: LocalDate
+) : ChartSelection
+
 expect class ChartModel
 
 expect interface ChartPointEntry
 
-expect fun List<List<Pair<LocalDate, Double>>>.toChartModel(defaultDaysCount: Float): ChartModel
+expect fun List<List<Pair<LocalDate, Double>>>.toChartModel(
+    defaultDaysCount: Float, minY: Float,
+    maxY: Float
+): ChartModel
