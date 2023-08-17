@@ -72,6 +72,7 @@ import com.patrykandpatrick.vico.core.component.shape.DashedShape
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.entry.ChartEntry
 import com.patrykandpatrick.vico.core.entry.ChartEntryModel
+import com.patrykandpatrick.vico.core.entry.FloatEntry
 import com.patrykandpatrick.vico.core.extension.copyColor
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.marker.MarkerVisibilityChangeListener
@@ -120,9 +121,9 @@ private fun ScreenContent(
             tabData?.let { Overview(tabData) }
 
             Spacer(modifier = Modifier.height(32.dp))
-            state.currentTabData?.takeIf { it.temperature.tempChart.hasMultipleItems }
+            state.currentTabData?.takeIf { it.temperature.chart.hasMultipleItems }
                 ?.let {
-                    TemperatureChart(it.temperature.tempChart, actions)
+                    TemperatureChart(it.temperature.chart, actions)
                 }
             Spacer(modifier = Modifier.height(16.dp))
             state.currentTabData?.takeIf { it.pressure.chart.hasMultipleItems }
@@ -279,7 +280,7 @@ private fun PressureChart(
     )
 
     Row {
-        Column(Modifier.weight(1f)) {
+        Column(Modifier.weight(1f).padding(bottom = 16.dp)) {
             PressureChartLegend(
                 chartColors = pressureChartColors,
                 pressureSets = chartState.chartSets,
@@ -309,6 +310,12 @@ private fun PressureChart(
                         labelId = MR.strings.history_min_pressure.resourceId
                     )
                 }
+                selection.trend?.let {
+                    PressureEntryLine(
+                        value = FloatEntry(0f, it.toFloat()),
+                        labelId = MR.strings.history_trend.resourceId
+                    )
+                }
             }
         }
     }
@@ -332,7 +339,7 @@ private fun PressureChart(
                 label = rememberStartAxisLabel(),
                 horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
                 valueFormatter = { value, _ ->
-                    "$value$hpa"
+                    "$value $hpa"
                 }
             ),
             marker = rememberMarker(),
@@ -350,7 +357,7 @@ private fun PressureChart(
 
                 override fun onMarkerHidden(marker: Marker) {
                     super.onMarkerHidden(marker)
-                    actions.selectTempPoints(emptyList(), 0)
+                    actions.selectPressurePoints(emptyList(), 0)
                 }
 
                 override fun onMarkerMoved(
@@ -358,7 +365,7 @@ private fun PressureChart(
                     markerEntryModels: List<Marker.EntryModel>
                 ) {
                     super.onMarkerMoved(marker, markerEntryModels)
-                    actions.selectTempPoints(
+                    actions.selectPressurePoints(
                         markerEntryModels.map { it.entry },
                         markerEntryModels.firstOrNull()?.index ?: 0
                     )
@@ -376,7 +383,7 @@ private fun PressureChart(
     }
     Row(Modifier.padding(horizontal = 4.dp)) {
         Text(
-            text = "30.0°C",
+            text = "1000.0 Hpa",
             fontSize = AXIS_LABEL_SIZE.sp,
             modifier = Modifier.alpha(0f)
         ) // Spacer for vert. axis

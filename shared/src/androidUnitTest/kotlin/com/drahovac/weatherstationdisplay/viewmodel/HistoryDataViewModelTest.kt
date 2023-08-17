@@ -103,10 +103,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMaxTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.temperature.tempChart.chartModel.entries.size)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMinAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isAvgAllowed)
+            assertEquals(2, it.temperature.chart.chartModel.entries.size)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isMinAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isAvgAllowed)
         }
     }
 
@@ -115,10 +115,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMinTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.temperature.tempChart.chartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isAvgAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMinAllowed)
+            assertEquals(2, it.temperature.chart.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isAvgAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isMinAllowed)
         }
     }
 
@@ -127,10 +127,10 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectAvgTempChart(false)
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
-            assertEquals(2, it.temperature.tempChart.chartModel.entries.size)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
-            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isAvgAllowed)
-            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.tempChart.chartSets.isMaxAllowed)
+            assertEquals(2, it.temperature.chart.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isMaxAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isAvgAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.temperature.chart.chartSets.isMaxAllowed)
         }
     }
 
@@ -138,7 +138,7 @@ class HistoryDataViewModelTest {
     fun `set selection if all charts selected`() = runTest(dispatcher) {
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertEquals(POINT1, selection.maxTemp)
             assertEquals(POINT2, selection.avgTemp)
@@ -151,7 +151,7 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
         historyDataViewModel.selectTempPoints(emptyList(), 0)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNull(selection)
         }
     }
@@ -163,7 +163,7 @@ class HistoryDataViewModelTest {
         historyDataViewModel.selectMinTempChart(false)
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2, POINT3), 1)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNull(selection)
         }
     }
@@ -174,7 +174,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 0)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertNull(selection.maxTemp)
             assertEquals(POINT1, selection.avgTemp)
@@ -188,7 +188,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 0)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertNull(selection.avgTemp)
             assertEquals(POINT1, selection.maxTemp)
@@ -202,7 +202,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1, POINT2), 4)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertEquals(LocalDate.parse("2023-08-02"), selection.date)
         }
@@ -215,11 +215,85 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.selectTempPoints(listOf(POINT1), 1)
 
-        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.tempChart.selectedEntries.let { selection ->
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNotNull(selection)
             assertNull(selection.maxTemp)
             assertNull(selection.avgTemp)
             assertEquals(POINT1, selection.minTemp)
+        }
+    }
+
+    @Test
+    fun `unselect max pressure chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxPressureChart(false)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
+            assertEquals(1, it.pressure.chart.chartModel.entries.size)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMinAllowed)
+        }
+    }
+
+    @Test
+    fun `select max pressure chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxPressureChart(false)
+
+        historyDataViewModel.selectMaxPressureChart(true)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
+            assertEquals(2, it.pressure.chart.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMinAllowed)
+        }
+    }
+
+    @Test
+    fun `unselect min pressure chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMinPressureChart(false)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
+            assertEquals(1, it.pressure.chart.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMaxAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMinAllowed)
+        }
+    }
+
+    @Test
+    fun `select min pressure chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMinPressureChart(false)
+
+        historyDataViewModel.selectMinPressureChart(true)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
+            assertEquals(2, it.pressure.chart.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.pressure.chart.chartSets.isMinAllowed)
+        }
+    }
+
+    @Test
+    fun `set selection if all pressure charts selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectPressurePoints(listOf(POINT1, POINT2), 1)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.pressure.chart.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertEquals(POINT1, selection.maxPressure)
+            assertEquals(POINT2, selection.minPressure)
+            assertEquals(-2.3, selection.trend)
+        }
+    }
+
+    @Test
+    fun `set selection if only min pressures chart selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxPressureChart(false)
+
+        historyDataViewModel.selectPressurePoints(listOf(POINT1), 1)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.pressure.chart.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertNull(selection.maxPressure)
+            assertNull(selection.trend)
+            assertEquals(POINT1, selection.minPressure)
         }
     }
 

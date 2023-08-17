@@ -46,7 +46,7 @@ data class TemperatureState(
     val maxDate: LocalDate,
     val minTemperature: Double,
     val minDate: LocalDate,
-    val tempChart: ChartState<TempChartSelection, TempChartSets>,
+    val chart: ChartState<TempChartSelection, TempChartSets>,
 )
 
 data class UvState(
@@ -61,6 +61,7 @@ data class PressureState(
     val maxPressureDate: LocalDate,
     val minPressure: Double,
     val minPressureDate: LocalDate,
+    val trends: List<Double>,
     val chart: ChartState<PressureChartSelection, PressureSets>,
 )
 

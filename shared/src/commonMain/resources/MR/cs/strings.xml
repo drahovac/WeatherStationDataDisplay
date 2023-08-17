@@ -80,6 +80,7 @@
     <string name="history_high_uv_index">Nejvyšší UV Index</string>
     <string name="history_high_presc_total">Celkové srážky za období</string>
     <string name="history_high_wind">Nejvyšší rychlost větru</string>
-    <string name="history_max_pressure">Maximální tlak</string>
-    <string name="history_min_pressure">Minimální tlak</string>
+    <string name="history_max_pressure">Max. tlak</string>
+    <string name="history_min_pressure">Min. tlak</string>
+    <string name="history_trend">Trend</string>
 </resources>
