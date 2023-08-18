@@ -115,7 +115,18 @@ class HistoryUseCaseTest {
                 HISTORY,
             ), result.observations
         )
+    }
 
+    @Test
+    fun `return week history for specific start`() = runTest(scheduler) {
+        val startDate = LocalDate.parse("2023-08-18") // Friday
+        val monday = LocalDate.parse("2023-08-14") // Friday
+        val expectedEndDate = LocalDate.parse("2023-08-20")
+        coEvery { database.selectHistory(monday, expectedEndDate) } returns listOf(HISTORY)
+
+        historyUseCase.getWeekHistory(startDate)
+
+        coVerify { database.selectHistory(monday, expectedEndDate) }
     }
 
     @Test
@@ -140,7 +151,7 @@ class HistoryUseCaseTest {
 
     private companion object {
         val LOCAL_DATE = LocalDate.parse("2023-07-03")
-        val WEEK_AFTER_TODAY = LocalDate.parse("2023-08-07")
+        val WEEK_AFTER_TODAY = LocalDate.parse("2023-08-06")
         val TODAY = LocalDateTime.parse("2023-07-31T03:06")
         val MONTH_FIRST_DAY = LocalDate.parse("2023-07-01")
         val MONTH_LAST_DAY = LocalDate.parse("2023-07-31")

@@ -15,6 +15,19 @@ actual fun LocalDate.toFormattedDate(): String {
     return this.toJavaLocalDate().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
 }
 
+fun LocalDate.toFormattedShortDate(): String {
+    var formatter = DateTimeFormatter.ofPattern("MM/dd", Locale.getDefault())
+    if(isDayBeforeMonthLocale()) {
+        formatter = DateTimeFormatter.ofPattern("dd/MM", Locale.getDefault())
+    }
+    return formatter.format(this.toJavaLocalDate())
+}
+
+private fun isDayBeforeMonthLocale(): Boolean {
+   val formatted =  LocalDate.parse("2023-03-05").toFormattedDate()
+    return formatted.startsWith("5")
+}
+
 actual fun LocalDate.Companion.firstDayOfWeekIndex(): Int {
     return WeekFields.of(Locale.getDefault()).firstDayOfWeek.isoDayNumber
 }

@@ -33,14 +33,14 @@ fun LocalDate.Companion.fromUTCEpochMillis(millis: Long) =
 
 fun Instant.toEpochDays() = toEpochMilliseconds() / 86400000
 
-fun Clock.firstDayOfWeek(): LocalDate {
-    now().toLocalDateTime(TimeZone.UTC).date.let {
-        var dayDifference: Int = it.dayOfWeek.isoDayNumber - LocalDate.firstDayOfWeekIndex()
-        if (dayDifference < 0) {
-            dayDifference += 7
-        }
-        return it.minus(dayDifference, DateTimeUnit.DAY)
+fun Clock.firstDayOfWeek(): LocalDate = now().toLocalDateTime(TimeZone.UTC).date.firstDayOfWeek()
+
+fun LocalDate.firstDayOfWeek(): LocalDate {
+    var dayDifference: Int = this.dayOfWeek.isoDayNumber - LocalDate.firstDayOfWeekIndex()
+    if (dayDifference < 0) {
+        dayDifference += 7
     }
+    return this.minus(dayDifference, DateTimeUnit.DAY)
 }
 
 fun LocalDate.firstDayOfMonth(): LocalDate = LocalDate(year, month, 1)

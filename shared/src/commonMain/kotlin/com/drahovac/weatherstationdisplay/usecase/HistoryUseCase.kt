@@ -48,14 +48,14 @@ class HistoryUseCase(
         }
     }
 
-    suspend fun getWeekHistory(): History {
-        val firstDay = clock.firstDayOfWeek()
+    suspend fun getWeekHistory(startDate: LocalDate? = null): History {
+        val firstDay = startDate?.firstDayOfWeek() ?: clock.firstDayOfWeek()
         return History(
             firstDay,
-            firstDay.plus(1, DateTimeUnit.WEEK),
+            firstDay.plus(1, DateTimeUnit.WEEK).minus(1,DateTimeUnit.DAY),
             database.selectHistory(
                 firstDay,
-                firstDay.plus(1, DateTimeUnit.WEEK),
+                firstDay.plus(1, DateTimeUnit.WEEK).minus(1,DateTimeUnit.DAY),
             )
         )
     }

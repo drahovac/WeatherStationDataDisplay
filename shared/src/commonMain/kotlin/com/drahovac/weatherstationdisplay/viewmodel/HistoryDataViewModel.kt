@@ -3,6 +3,7 @@ package com.drahovac.weatherstationdisplay.viewmodel
 import co.touchlab.kermit.Logger
 import com.drahovac.weatherstationdisplay.domain.History
 import com.drahovac.weatherstationdisplay.domain.firstDayOfMonth
+import com.drahovac.weatherstationdisplay.domain.firstDayOfWeek
 import com.drahovac.weatherstationdisplay.domain.toEpochDays
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
 import com.drahovac.weatherstationdisplay.domain.toLocalizedShortDayName
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -79,15 +79,15 @@ class HistoryDataViewModel(
 
     override fun selectNextMonth() {
         _state.value.currentTabData?.startDate?.let {
-            updateSelectedMonth(it.firstDayOfMonth().plus(1, DateTimeUnit.MONTH))
+            updateSelectedTerm(it.firstDayOfMonth().plus(1, DateTimeUnit.MONTH), HistoryTab.MONTH)
         }
     }
 
-    private fun updateSelectedMonth(newStartDate: LocalDate) {
+    private fun updateSelectedTerm(newStartDate: LocalDate, tab: HistoryTab) {
         viewModelScope.coroutineScope.launch {
             _state.update { currentState ->
                 val newData = fetchTabData(
-                    HistoryTab.MONTH,
+                    tab,
                     currentState.currentTabData?.temperature?.chart?.chartSets ?: TempChartSets(),
                     currentState.currentTabData?.pressure?.chart?.chartSets ?: PressureSets(),
                     newStartDate
@@ -102,7 +102,19 @@ class HistoryDataViewModel(
 
     override fun selectPreviousMonth() {
         _state.value.currentTabData?.startDate?.let {
-            updateSelectedMonth(it.firstDayOfMonth().minus(1, DateTimeUnit.MONTH))
+            updateSelectedTerm(it.firstDayOfMonth().minus(1, DateTimeUnit.MONTH), HistoryTab.MONTH)
+        }
+    }
+
+    override fun selectNextWeek() {
+        _state.value.currentTabData?.startDate?.let {
+            updateSelectedTerm(it.firstDayOfWeek().plus(1, DateTimeUnit.WEEK), HistoryTab.WEEK)
+        }
+    }
+
+    override fun selectPreviousWeek() {
+        _state.value.currentTabData?.startDate?.let {
+            updateSelectedTerm(it.firstDayOfWeek().minus(1, DateTimeUnit.WEEK), HistoryTab.WEEK)
         }
     }
 
@@ -289,13 +301,13 @@ class HistoryDataViewModel(
         tab: HistoryTab,
         tempChartSets: TempChartSets,
         pressureChartSets: PressureSets,
-        monthStartDate: LocalDate? = null,
+        startDate: LocalDate? = null,
     ): HistoryTabState {
         return withContext(defaultDispatcher) {
             when (tab) {
                 HistoryTab.YESTERDAY -> historyUseCase.getYesterdayHistory()
-                HistoryTab.WEEK -> historyUseCase.getWeekHistory()
-                HistoryTab.MONTH -> historyUseCase.getMonthHistory(monthStartDate)
+                HistoryTab.WEEK -> historyUseCase.getWeekHistory(startDate)
+                HistoryTab.MONTH -> historyUseCase.getMonthHistory(startDate)
             }
         }.toTabData(tempChartSets, pressureChartSets, tab)
     }
@@ -389,7 +401,6 @@ fun History.toTabData(
 }
 
 private fun History.bottomLabels(tab: HistoryTab): List<String> {
-    val minDate = observations.minByOrNull { it.obsTimeUtc }?.dateTimeLocal?.date ?: firstDate
     return when (tab) {
         HistoryTab.MONTH -> listOf(
             firstDate.toFormattedDate(),
@@ -398,7 +409,7 @@ private fun History.bottomLabels(tab: HistoryTab): List<String> {
 
         HistoryTab.YESTERDAY -> emptyList()
         HistoryTab.WEEK -> return List(7) { it }.map {
-            minDate.plus(it, DateTimeUnit.DAY).toLocalizedShortDayName()
+            firstDate.plus(it, DateTimeUnit.DAY).toLocalizedShortDayName()
         }
     }
 }
@@ -416,6 +427,10 @@ interface HistoryDataActions {
     fun selectNextMonth()
 
     fun selectPreviousMonth()
+
+    fun selectNextWeek()
+
+    fun selectPreviousWeek()
 
     fun selectMaxTempChart(isSelected: Boolean)
 

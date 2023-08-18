@@ -329,6 +329,31 @@ class HistoryDataViewModelTest {
         testScheduler.advanceTimeBy(1)
     }
 
+
+    @Test
+    fun `fetch week data on select next week`() = runTest(dispatcher) {
+        val expectedStart = LocalDate.parse("2023-08-21")
+        coEvery { historyUseCase.getWeekHistory(expectedStart) } returns WEEK_HISTORY
+
+        historyDataViewModel.selectNextWeek()
+        testScheduler.advanceTimeBy(1)
+
+        coVerify { historyUseCase.getWeekHistory(expectedStart) }
+        testScheduler.advanceTimeBy(1)
+    }
+
+    @Test
+    fun `fetch week data on select previous week`() = runTest(dispatcher) {
+        val expectedStart = LocalDate.parse("2023-08-07")
+        coEvery { historyUseCase.getWeekHistory(expectedStart) } returns WEEK_HISTORY
+
+        historyDataViewModel.selectPreviousWeek()
+        testScheduler.advanceTimeBy(1)
+
+        coVerify { historyUseCase.getWeekHistory(expectedStart) }
+        testScheduler.advanceTimeBy(1)
+    }
+
     private companion object {
         const val MAX_TEMP = 14.0
         const val MAX_TEMP_YESTERDAY = 2.0

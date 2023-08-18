@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
+import android.icu.util.TimeUnit
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ import com.drahovac.weatherstationdisplay.domain.History
 import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
+import com.drahovac.weatherstationdisplay.domain.toFormattedShortDate
 import com.drahovac.weatherstationdisplay.domain.toLocalizedLongDayName
 import com.drahovac.weatherstationdisplay.domain.toLocalizedMontName
 import com.drahovac.weatherstationdisplay.domain.toLocalizedShortDayName
@@ -646,19 +648,25 @@ private fun IntervalInfo(tabData: HistoryTabState, tab: HistoryTab, actions: His
                 .padding(top = 16.dp, bottom = 8.dp),
             text = when (tab) {
                 HistoryTab.YESTERDAY -> "${tabData.startDate.toLocalizedLongDayName()}, ${tabData.startDate.toFormattedDate()}"
-                HistoryTab.WEEK -> "${tabData.startDate.toLocalizedShortDayName()}, ${tabData.startDate.toFormattedDate()} - ${
+                HistoryTab.WEEK -> "${tabData.startDate.toLocalizedShortDayName()}, ${tabData.startDate.toFormattedShortDate()} - ${
                     tabData.startDate.plus(
                         6,
                         DateTimeUnit.DAY
                     ).toLocalizedShortDayName()
-                }, ${tabData.startDate.plus(6, DateTimeUnit.DAY).toFormattedDate()}"
+                }, ${tabData.startDate.plus(6, DateTimeUnit.DAY).toFormattedShortDate()}"
 
                 HistoryTab.MONTH -> "${tabData.startDate.toLocalizedMontName()} ${tabData.startDate.year}"
             }
         )
 
-        if (tab == HistoryTab.MONTH) {
-            IconButton(onClick = actions::selectPreviousMonth) {
+        if (tab != HistoryTab.YESTERDAY) {
+            val actionNext =
+                if (tab == HistoryTab.MONTH) actions::selectNextMonth else actions::selectNextWeek
+            val actionPrev =
+                if (tab == HistoryTab.MONTH) actions::selectPreviousMonth else actions::selectPreviousWeek
+            val timeUnit = if(tab == HistoryTab.MONTH) DateTimeUnit.MONTH else DateTimeUnit.WEEK
+
+            IconButton(onClick = actionPrev) {
                 Icon(
                     modifier = Modifier.rotate(180f),
                     painter = painterResource(id = R.drawable.baseline_navigate_next_24),
@@ -667,11 +675,11 @@ private fun IntervalInfo(tabData: HistoryTabState, tab: HistoryTab, actions: His
             }
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(
-                enabled = tabData.startDate.plus(1, DateTimeUnit.MONTH) <= Clock.System.now()
+                enabled = tabData.startDate.plus(1, timeUnit) <= Clock.System.now()
                     .toLocalDateTime(
                         TimeZone.currentSystemDefault()
                     ).date,
-                onClick = actions::selectNextMonth
+                onClick = actionNext
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_navigate_next_24),
