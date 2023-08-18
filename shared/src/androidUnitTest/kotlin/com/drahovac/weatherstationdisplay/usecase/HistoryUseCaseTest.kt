@@ -41,7 +41,6 @@ class HistoryUseCaseTest {
         coEvery { database.selectHistory(any()) } returns emptyList()
         coEvery { database.selectNewestHistoryDate() } returns LOCAL_DATE
         coEvery { database.selectHistory(TODAY.date, WEEK_AFTER_TODAY) } returns listOf(HISTORY)
-        coEvery { database.selectHistory(MONTH_FIRST_DAY, TODAY.date) } returns listOf(HISTORY)
         coEvery { historyWeatherDataRepository.fetchHistory(LOCAL_DATE) } returns Result.success(
             listOf(HISTORY)
         )
@@ -114,16 +113,29 @@ class HistoryUseCaseTest {
         assertEquals(
             listOf(
                 HISTORY,
-            ), result
+            ), result.observations
         )
 
     }
 
     @Test
     fun `return month history`() = runTest(scheduler) {
+        coEvery { database.selectHistory(MONTH_FIRST_DAY, MONTH_LAST_DAY) } returns listOf(HISTORY)
+
         historyUseCase.getMonthHistory()
 
-        coVerify { database.selectHistory(MONTH_FIRST_DAY, TODAY.date) }
+        coVerify { database.selectHistory(MONTH_FIRST_DAY, MONTH_LAST_DAY) }
+    }
+
+    @Test
+    fun `return month history for specific start`() = runTest(scheduler) {
+        val startDate = LocalDate.parse("2023-06-01")
+        val expectedEndDate = LocalDate.parse("2023-06-30")
+        coEvery { database.selectHistory(startDate, expectedEndDate) } returns listOf(HISTORY)
+
+        historyUseCase.getMonthHistory(startDate)
+
+        coVerify { database.selectHistory(startDate, expectedEndDate) }
     }
 
     private companion object {
@@ -131,6 +143,7 @@ class HistoryUseCaseTest {
         val WEEK_AFTER_TODAY = LocalDate.parse("2023-08-07")
         val TODAY = LocalDateTime.parse("2023-07-31T03:06")
         val MONTH_FIRST_DAY = LocalDate.parse("2023-07-01")
+        val MONTH_LAST_DAY = LocalDate.parse("2023-07-31")
         val HISTORY = historyObservationPrototype.copy(obsTimeUtc = TODAY.toInstant(TimeZone.UTC))
     }
 }

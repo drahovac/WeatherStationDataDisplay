@@ -11,6 +11,7 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
@@ -27,7 +28,6 @@ fun LocalDate.toCurrentUTCMillisStartOFDay() =
 fun LocalDateTime.toCurrentUTCDays() =
     this.toInstant(TimeZone.UTC).toEpochMilliseconds() / 86400000
 
-
 fun LocalDate.Companion.fromUTCEpochMillis(millis: Long) =
     Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date
 
@@ -43,12 +43,17 @@ fun Clock.firstDayOfWeek(): LocalDate {
     }
 }
 
+fun LocalDate.firstDayOfMonth(): LocalDate = LocalDate(year, month, 1)
+
+fun LocalDate.lastDayOfMonth(): LocalDate =
+    firstDayOfMonth().plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
+
 expect fun LocalDate.toFormattedDate(): String
 
 expect fun LocalDate.Companion.firstDayOfWeekIndex(): Int
 
-expect fun LocalDate.toLocalizedShortDayName() : String
+expect fun LocalDate.toLocalizedShortDayName(): String
 
-expect fun LocalDate.toLocalizedLongDayName() : String
+expect fun LocalDate.toLocalizedLongDayName(): String
 
-expect fun LocalDate.toLocalizedMontName() : String
+expect fun LocalDate.toLocalizedMontName(): String

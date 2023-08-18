@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -23,18 +27,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
+import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.theme.rememberChartStyle
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelField
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueField
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueFieldWithUnits
 import com.drahovac.weatherstationdisplay.android.ui.component.MarkerLineComponent
+import com.drahovac.weatherstationdisplay.domain.History
 import com.drahovac.weatherstationdisplay.domain.HistoryMetric
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
@@ -76,11 +85,14 @@ import com.patrykandpatrick.vico.core.entry.FloatEntry
 import com.patrykandpatrick.vico.core.extension.copyColor
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.marker.MarkerVisibilityChangeListener
+import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -117,8 +129,11 @@ private fun ScreenContent(
             Modifier
                 .verticalScroll(rememberScrollState())
         ) {
-            tabData?.let { IntervalInfo(tabData, state.selectedTab) }
-            tabData?.let { Overview(tabData) }
+            tabData?.let { IntervalInfo(tabData, state.selectedTab, actions) }
+            when {
+                tabData?.hasData == true -> Overview(tabData)
+                tabData != null -> NoData()
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
             state.currentTabData?.takeIf { it.temperature.chart.hasMultipleItems }
@@ -132,6 +147,31 @@ private fun ScreenContent(
                 }
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+
+@Composable
+private fun NoData() {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .size(64.dp),
+            painter = painterResource(id = R.drawable.baseline_block_24),
+            contentDescription = null
+        )
+
+        Text(
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(id = MR.strings.history_no_data.resourceId),
+            style = MaterialTheme.typography.displayMedium
+        )
     }
 }
 
@@ -280,7 +320,11 @@ private fun PressureChart(
     )
 
     Row {
-        Column(Modifier.weight(1f).padding(bottom = 16.dp)) {
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(bottom = 16.dp)
+        ) {
             PressureChartLegend(
                 chartColors = pressureChartColors,
                 pressureSets = chartState.chartSets,
@@ -320,7 +364,7 @@ private fun PressureChart(
         }
     }
 
-    val colors = tempChartColors.filterPressureSets(chartState.chartSets)
+    val colors = pressureChartColors.filterPressureSets(chartState.chartSets)
     val hpa = stringResource(id = MR.strings.current_hpa.resourceId)
     ProvideChartStyle(rememberChartStyle(colors)) {
         Chart(
@@ -541,13 +585,13 @@ private fun Overview(tabData: HistoryTabState) {
             }
             LabelValueField(
                 label = stringResource(id = MR.strings.history_max_temperature.resourceId),
-                value = tabData.temperature.maxTemperature.toString().orEmpty()
+                value = tabData.temperature.maxTemperature.toString()
             )
             LabelField(label = maxDate)
             Spacer(modifier = Modifier.height(8.dp))
             LabelValueField(
                 label = stringResource(id = MR.strings.history_high_uv_index.resourceId),
-                value = tabData.uv.maxUvIndex.toString().orEmpty()
+                value = tabData.uv.maxUvIndex.toString()
             )
             LabelField(label = maxUVDate)
             Spacer(modifier = Modifier.height(8.dp))
@@ -580,33 +624,63 @@ private fun Overview(tabData: HistoryTabState) {
             Spacer(modifier = Modifier.height(8.dp))
             LabelValueFieldWithUnits(
                 label = stringResource(id = MR.strings.history_high_presc_total.resourceId),
-                value = tabData.prescriptionForPeriod.toString(),
+                value = tabData.prescriptionForPeriod.toFormattedString(),
                 units = stringResource(id = MR.strings.current_mm.resourceId),
             )
         }
     }
 }
 
-@Composable
-private fun IntervalInfo(tabData: HistoryTabState, tab: HistoryTab) {
-    Text(
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp, bottom = 8.dp),
-        text = when (tab) {
-            HistoryTab.YESTERDAY -> "${tabData.startDate.toLocalizedLongDayName()}, ${tabData.startDate.toFormattedDate()}"
-            HistoryTab.WEEK -> "${tabData.startDate.toLocalizedShortDayName()}, ${tabData.startDate.toFormattedDate()} - ${
-                tabData.startDate.plus(
-                    6,
-                    DateTimeUnit.DAY
-                ).toLocalizedShortDayName()
-            }, ${tabData.startDate.plus(6, DateTimeUnit.DAY).toFormattedDate()}"
+private fun Double.toFormattedString(): String {
+    return String.format("%.2f", this)
+}
 
-            HistoryTab.MONTH -> tabData.startDate.toLocalizedMontName()
+@Composable
+private fun IntervalInfo(tabData: HistoryTabState, tab: HistoryTab, actions: HistoryDataActions) {
+    Row {
+        Text(
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp, bottom = 8.dp),
+            text = when (tab) {
+                HistoryTab.YESTERDAY -> "${tabData.startDate.toLocalizedLongDayName()}, ${tabData.startDate.toFormattedDate()}"
+                HistoryTab.WEEK -> "${tabData.startDate.toLocalizedShortDayName()}, ${tabData.startDate.toFormattedDate()} - ${
+                    tabData.startDate.plus(
+                        6,
+                        DateTimeUnit.DAY
+                    ).toLocalizedShortDayName()
+                }, ${tabData.startDate.plus(6, DateTimeUnit.DAY).toFormattedDate()}"
+
+                HistoryTab.MONTH -> "${tabData.startDate.toLocalizedMontName()} ${tabData.startDate.year}"
+            }
+        )
+
+        if (tab == HistoryTab.MONTH) {
+            IconButton(onClick = actions::selectPreviousMonth) {
+                Icon(
+                    modifier = Modifier.rotate(180f),
+                    painter = painterResource(id = R.drawable.baseline_navigate_next_24),
+                    contentDescription = stringResource(id = MR.strings.history_previous_month.resourceId)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(
+                enabled = tabData.startDate.plus(1, DateTimeUnit.MONTH) <= Clock.System.now()
+                    .toLocalDateTime(
+                        TimeZone.currentSystemDefault()
+                    ).date,
+                onClick = actions::selectNextMonth
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_navigate_next_24),
+                    contentDescription = stringResource(id = MR.strings.history_next_month.resourceId)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
         }
-    )
+    }
 }
 
 private val HistoryTab.label: String
@@ -713,7 +787,11 @@ fun HistoryDataScreenPreview() {
             HistoryDataState(
                 selectedTab = HistoryTab.MONTH,
                 tabData = mapOf(
-                    HistoryTab.MONTH to listOf(observation).toTabData(
+                    HistoryTab.MONTH to History(
+                        LocalDate.parse("2023-01-01"),
+                        LocalDate.parse("2023-01-31"),
+                        listOf(observation)
+                    ).toTabData(
                         TempChartSets(),
                         PressureSets(),
                         HistoryTab.MONTH,
@@ -725,6 +803,21 @@ fun HistoryDataScreenPreview() {
     }
 }
 
+
+@Preview
+@Composable
+fun HistoryDataScreenEmptyPreview() {
+    MaterialTheme {
+        ScreenContent(
+            state =
+            HistoryDataState(
+                selectedTab = HistoryTab.MONTH,
+                tabData = emptyMap(),
+            ),
+            actions = ActionsInvocationHandler.createActionsProxy(),
+        )
+    }
+}
 
 private val tempChartColors
     @Composable

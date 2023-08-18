@@ -1,9 +1,11 @@
 package com.drahovac.weatherstationdisplay.usecase
 
 import com.drahovac.weatherstationdisplay.data.Database
-import com.drahovac.weatherstationdisplay.domain.HistoryObservation
+import com.drahovac.weatherstationdisplay.domain.History
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
+import com.drahovac.weatherstationdisplay.domain.firstDayOfMonth
 import com.drahovac.weatherstationdisplay.domain.firstDayOfWeek
+import com.drahovac.weatherstationdisplay.domain.lastDayOfMonth
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -46,23 +48,41 @@ class HistoryUseCase(
         }
     }
 
-    suspend fun getWeekHistory(): List<HistoryObservation> {
+    suspend fun getWeekHistory(): History {
         val firstDay = clock.firstDayOfWeek()
-        return database.selectHistory(
+        return History(
             firstDay,
             firstDay.plus(1, DateTimeUnit.WEEK),
+            database.selectHistory(
+                firstDay,
+                firstDay.plus(1, DateTimeUnit.WEEK),
+            )
         )
     }
 
-    suspend fun getMonthHistory() = database.selectHistory(
-        clock.now().toLocalDateTime(TimeZone.UTC).date.let {
-            LocalDate(it.year, it.month, 1)
-        },
-        clock.now().toLocalDateTime(TimeZone.UTC).date,
-    )
+    suspend fun getMonthHistory(
+        startDate: LocalDate? = null
+    ): History {
+        val firstOfMonth =
+            (startDate ?: clock.now().toLocalDateTime(TimeZone.UTC).date).firstDayOfMonth()
+        return History(
+            firstOfMonth,
+            firstOfMonth.lastDayOfMonth(),
+            database.selectHistory(
+                firstOfMonth,
+                firstOfMonth.lastDayOfMonth(),
+            )
+        )
+    }
 
-    suspend fun getYesterdayHistory() = database.selectHistory(
-        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
-        clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY),
-    )
+    suspend fun getYesterdayHistory(): History {
+        val start = clock.now().toLocalDateTime(TimeZone.UTC).date.minus(1, DateTimeUnit.DAY)
+        return History(
+            start,
+            start,
+            database.selectHistory(
+                start, start
+            )
+        )
+    }
 }

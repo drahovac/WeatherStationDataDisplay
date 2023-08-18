@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
+import com.drahovac.weatherstationdisplay.domain.History
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import kotlinx.datetime.LocalDate
 
@@ -39,7 +40,9 @@ data class HistoryTabState(
     val prescriptionForPeriod: Double,
     val maxWindSpeed: Double,
     val maxWindSpeedDate: LocalDate,
-)
+) {
+    val hasData: Boolean = temperature.history.observations.isNotEmpty()
+}
 
 data class TemperatureState(
     val maxTemperature: Double,
@@ -47,7 +50,10 @@ data class TemperatureState(
     val minTemperature: Double,
     val minDate: LocalDate,
     val chart: ChartState<TempChartSelection, TempChartSets>,
-)
+) {
+    val history: History
+        get() = History(chart.startDate, chart.endDate, chart.observations)
+}
 
 data class UvState(
     val maxUvIndex: Int,
@@ -67,6 +73,8 @@ data class PressureState(
 
 data class ChartState<T : ChartSelection, S>(
     val observations: List<HistoryObservation>,
+    val startDate: LocalDate,
+    val endDate: LocalDate,
     val chartSets: S,
     val selectedEntries: T? = null,
     val bottomLabels: List<String> = emptyList(),
@@ -98,5 +106,6 @@ expect interface ChartPointEntry
 
 expect fun List<List<Pair<LocalDate, Double>>>.toChartModel(
     defaultDaysCount: Float, minY: Float,
-    maxY: Float
+    maxY: Float,
+    xOffset: Float,
 ): ChartModel

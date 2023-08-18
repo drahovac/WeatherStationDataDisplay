@@ -42,12 +42,12 @@ class LineChartEntryModel(
     chartEntries: List<ChartEntry>
 ) : ChartEntryModel {
     override val entries: List<List<ChartEntry>> = listOf(chartEntries)
-    override val minX: Float = chartEntries.minOf { it.x }
-    override val maxX: Float = chartEntries.maxOf { it.x }
-    override val minY: Float = chartEntries.minOf { it.y }
-    override val maxY: Float = chartEntries.maxOf { it.y }
-    override val stackedPositiveY: Float = chartEntries.maxOf { it.y + 5 }
-    override val stackedNegativeY: Float = chartEntries.minOf { it.y - 5 }
+    override val minX: Float = chartEntries.minOfOrNull { it.x } ?: 0f
+    override val maxX: Float = chartEntries.maxOfOrNull { it.x } ?: 0f
+    override val minY: Float = chartEntries.minOfOrNull { it.y } ?: 0f
+    override val maxY: Float = chartEntries.maxOfOrNull { it.y } ?: 0f
+    override val stackedPositiveY: Float = chartEntries.maxOfOrNull { it.y + 5 } ?: 0f
+    override val stackedNegativeY: Float = chartEntries.minOfOrNull { it.y - 5 } ?: 0f
     override val xGcd: Float = listOf(chartEntries).calculateXGcd()
     override val id: Int = chartEntries.map { it.x + it.y }.hashCode()
 }
@@ -55,20 +55,22 @@ class LineChartEntryModel(
 actual fun List<List<Pair<LocalDate, Double>>>.toChartModel(
     defaultDaysCount: Float,
     minY: Float,
-    maxY: Float): ChartModel {
+    maxY: Float,
+    xOffset: Float
+): ChartModel {
     val models = this.map {
-        var firstDate = 0f
-        LineChartEntryModel(it.mapIndexed { index, pair ->
+        var firstDate = xOffset
+        LineChartEntryModel(it.map { pair ->
             val date = pair.first.toEpochDays().toFloat()
-            if (firstDate == 0f) firstDate = date
+            if (firstDate == xOffset) firstDate = date
             FloatEntry(
-                date - firstDate,
+                date - firstDate + xOffset,
                 pair.second.toFloat()
             )
         })
     }
 
-    return ChartModel(models, defaultDaysCount,minY,maxY)
+    return ChartModel(models, defaultDaysCount, minY, maxY)
 }
 
 internal fun Iterable<Iterable<ChartEntry>>.calculateXGcd(): Float {

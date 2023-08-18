@@ -88,4 +88,7 @@
     <string name="history_max_pressure">Max pressure</string>
     <string name="history_min_pressure">Min pressure</string>
     <string name="history_trend">Trend</string>
+    <string name="history_next_month">Next month</string>
+    <string name="history_previous_month">Previous month</string>
+    <string name="history_no_data">No data</string>
 </resources>

@@ -4,6 +4,7 @@ import co.touchlab.kermit.ExperimentalKermitApi
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
 import co.touchlab.kermit.TestLogWriter
+import com.drahovac.weatherstationdisplay.domain.History
 import com.drahovac.weatherstationdisplay.domain.historyMetricPrototype
 import com.drahovac.weatherstationdisplay.domain.historyObservationPrototype
 import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
@@ -17,6 +18,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -78,6 +82,10 @@ class HistoryDataViewModelTest {
             assertEquals(MAX_UV_MONTH.toInt(), it.tabData[HistoryTab.MONTH]!!.uv.maxUvIndex)
             assertEquals(PRESSURE_MAX, it.tabData[HistoryTab.MONTH]!!.pressure.maxPressure)
             assertEquals(PRESSURE_MIN, it.tabData[HistoryTab.MONTH]!!.pressure.minPressure)
+            assertEquals(17f,
+                it.tabData[HistoryTab.MONTH]!!.temperature.chart.chartModel.entries.first()
+                    .first().x
+            )
         }
     }
 
@@ -204,7 +212,7 @@ class HistoryDataViewModelTest {
 
         historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.temperature.chart.selectedEntries.let { selection ->
             assertNotNull(selection)
-            assertEquals(LocalDate.parse("2023-08-02"), selection.date)
+            assertEquals(LocalDate.parse("2023-08-22"), selection.date)
         }
     }
 
@@ -297,6 +305,30 @@ class HistoryDataViewModelTest {
         }
     }
 
+    @Test
+    fun `fetch month data on select next month`() = runTest(dispatcher) {
+        val expectedStart = LocalDate.parse("2023-09-01")
+        coEvery { historyUseCase.getMonthHistory(expectedStart) } returns MONTH_HISTORY
+        historyDataViewModel.selectNextMonth()
+
+        testScheduler.advanceTimeBy(1)
+
+        coVerify { historyUseCase.getMonthHistory(expectedStart) }
+        testScheduler.advanceTimeBy(1)
+    }
+
+    @Test
+    fun `fetch month data on select previous month`() = runTest(dispatcher) {
+        val expectedStart = LocalDate.parse("2023-07-01")
+        coEvery { historyUseCase.getMonthHistory(expectedStart) } returns MONTH_HISTORY
+        historyDataViewModel.selectPreviousMonth()
+
+        testScheduler.advanceTimeBy(1)
+
+        coVerify { historyUseCase.getMonthHistory(expectedStart) }
+        testScheduler.advanceTimeBy(1)
+    }
+
     private companion object {
         const val MAX_TEMP = 14.0
         const val MAX_TEMP_YESTERDAY = 2.0
@@ -314,18 +346,35 @@ class HistoryDataViewModelTest {
             pressureMin = PRESSURE_MIN
         )
         val METRIC3 = historyMetricPrototype.copy(tempHigh = MAX_TEMP_MONTH, tempLow = 10.0)
+        val TODAY = LocalDateTime.parse("2023-08-18T10:34:56").toInstant(TimeZone.UTC) // Friday
 
-        val HISTORY1 = historyObservationPrototype.copy(metric = METRIC1)
-        val HISTORY2 = historyObservationPrototype.copy(stationID = "ID3", metric = METRIC2)
+        val HISTORY1 = historyObservationPrototype.copy(
+            obsTimeUtc = TODAY,
+            obsTimeLocal = "2023-08-18T10:34:56",
+            metric = METRIC1
+        )
+        val HISTORY2 = historyObservationPrototype.copy(
+            obsTimeUtc = TODAY,
+            obsTimeLocal = "2023-08-18T10:34:56",
+            stationID = "ID3",
+            metric = METRIC2
+        )
         val HISTORY3 = historyObservationPrototype.copy(
+            obsTimeUtc = TODAY,
+            obsTimeLocal = "2023-08-18T10:34:56",
             stationID = "ID5",
             metric = METRIC3,
             uvHigh = MAX_UV_MONTH,
             solarRadiationHigh = MAX_RADIATION_MONTH
         )
-        val WEEK_HISTORY = listOf(HISTORY1, HISTORY2)
-        val MONTH_HISTORY = listOf(HISTORY1, HISTORY2, HISTORY2, HISTORY3)
-        val YESTERDAY_HISTORY = listOf(HISTORY1)
+        val MONDAY = LocalDate.parse("2023-08-14")
+        val SUNDAY = LocalDate.parse("2023-08-20")
+        val MONTH_FIRST = LocalDate.parse("2023-08-01")
+        val MONTH_LAST = LocalDate.parse("2023-08-31")
+        val WEEK_HISTORY = History(MONDAY, SUNDAY, listOf(HISTORY1, HISTORY2))
+        val MONTH_HISTORY =
+            History(MONTH_FIRST, MONTH_LAST, listOf(HISTORY1, HISTORY2, HISTORY2, HISTORY3))
+        val YESTERDAY_HISTORY = History(MONDAY, MONDAY, listOf(HISTORY1))
         val POINT1 = FloatEntry(1f, 1f)
         val POINT2 = FloatEntry(2f, 1f)
         val POINT3 = FloatEntry(3f, 1f)
