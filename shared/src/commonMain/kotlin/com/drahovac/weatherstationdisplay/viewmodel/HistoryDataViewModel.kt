@@ -2,6 +2,7 @@ package com.drahovac.weatherstationdisplay.viewmodel
 
 import co.touchlab.kermit.Logger
 import com.drahovac.weatherstationdisplay.domain.History
+import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.firstDayOfMonth
 import com.drahovac.weatherstationdisplay.domain.firstDayOfWeek
 import com.drahovac.weatherstationdisplay.domain.toEpochDays
@@ -49,7 +50,8 @@ class HistoryDataViewModel(
                         HistoryTab.WEEK to fetchTabData(
                             HistoryTab.WEEK,
                             TempChartSets(),
-                            PressureSets()
+                            PressureSets(),
+                            HumidityChartSets(),
                         )
                     )
                 )
@@ -64,7 +66,12 @@ class HistoryDataViewModel(
         viewModelScope.coroutineScope.launch {
             _state.update { currentState ->
                 val tabData =
-                    currentState.tabData[tab] ?: fetchTabData(tab, TempChartSets(), PressureSets())
+                    currentState.tabData[tab] ?: fetchTabData(
+                        tab,
+                        TempChartSets(),
+                        PressureSets(),
+                        HumidityChartSets()
+                    )
                 val tabMap = currentState.tabData.toMutableMap().apply {
                     put(tab, tabData)
                 }
@@ -88,8 +95,9 @@ class HistoryDataViewModel(
             _state.update { currentState ->
                 val newData = fetchTabData(
                     tab,
-                    currentState.currentTabData?.temperature?.chart?.chartSets ?: TempChartSets(),
-                    currentState.currentTabData?.pressure?.chart?.chartSets ?: PressureSets(),
+                    defaultTempSets(currentState),
+                    defaultPressureSets(currentState),
+                    defaultHumiditySets(currentState),
                     newStartDate
                 )
                 currentState.copy(
@@ -125,7 +133,8 @@ class HistoryDataViewModel(
             val tabData = getTabData(
                 it,
                 tempChartSets ?: TempChartSets(isMaxAllowed = isSelected),
-                defaultPressureSets(it)
+                defaultPressureSets(it),
+                defaultHumiditySets(it)
             )
             it.copy(tabData = tabData)
         }
@@ -137,15 +146,20 @@ class HistoryDataViewModel(
     private fun defaultTempSets(state: HistoryDataState) =
         state.currentTabData?.temperature?.chart?.chartSets ?: TempChartSets()
 
+    private fun defaultHumiditySets(state: HistoryDataState) =
+        state.currentTabData?.humidity?.chartSets ?: HumidityChartSets()
+
     private fun getTabData(
         state: HistoryDataState,
         tempChartSets: TempChartSets,
         pressureChartSets: PressureSets,
+        humidityChartSets: HumidityChartSets,
     ): MutableMap<HistoryTab, HistoryTabState?> {
         return getTabData(state) {
             it.temperature.history.toTabData(
                 tempChartSets,
                 pressureChartSets,
+                humidityChartSets,
                 state.selectedTab
             )
         }
@@ -171,7 +185,8 @@ class HistoryDataViewModel(
             val tabData = getTabData(
                 it,
                 tempChartSets ?: TempChartSets(isMinAllowed = isSelected),
-                defaultPressureSets(it)
+                defaultPressureSets(it),
+                defaultHumiditySets(it),
             )
             it.copy(tabData = tabData)
         }
@@ -184,7 +199,8 @@ class HistoryDataViewModel(
             val tabData = getTabData(
                 it,
                 defaultTempSets(it),
-                pressureSets ?: PressureSets(isMaxAllowed = isSelected)
+                pressureSets ?: PressureSets(isMaxAllowed = isSelected),
+                defaultHumiditySets(it)
             )
             it.copy(tabData = tabData)
         }
@@ -197,7 +213,8 @@ class HistoryDataViewModel(
             val tabData = getTabData(
                 it,
                 defaultTempSets(it),
-                pressureSets ?: PressureSets(isMinAllowed = isSelected)
+                pressureSets ?: PressureSets(isMinAllowed = isSelected),
+                defaultHumiditySets(it)
             )
             it.copy(tabData = tabData)
         }
@@ -210,7 +227,50 @@ class HistoryDataViewModel(
             val tabData = getTabData(
                 it,
                 tempChartSets ?: TempChartSets(isAvgAllowed = isSelected),
-                defaultPressureSets(it)
+                defaultPressureSets(it),
+                defaultHumiditySets(it),
+            )
+            it.copy(tabData = tabData)
+        }
+    }
+
+    override fun selectMaxHumidity(isSelected: Boolean) {
+        _state.update {
+            val sets =
+                it.currentTabData?.humidity?.chartSets?.copy(isMaxAllowed = isSelected)
+            val tabData = getTabData(
+                it,
+                defaultTempSets(it),
+                defaultPressureSets(it),
+                sets ?: HumidityChartSets(isMaxAllowed = isSelected),
+            )
+            it.copy(tabData = tabData)
+        }
+    }
+
+    override fun selectMinHumidity(isSelected: Boolean) {
+        _state.update {
+            val sets =
+                it.currentTabData?.humidity?.chartSets?.copy(isMinAllowed = isSelected)
+            val tabData = getTabData(
+                it,
+                defaultTempSets(it),
+                defaultPressureSets(it),
+                sets ?: HumidityChartSets(isMinAllowed = isSelected),
+            )
+            it.copy(tabData = tabData)
+        }
+    }
+
+    override fun selectAvgHumidity(isSelected: Boolean) {
+        _state.update {
+            val sets =
+                it.currentTabData?.humidity?.chartSets?.copy(isAvgAllowed = isSelected)
+            val tabData = getTabData(
+                it,
+                defaultTempSets(it),
+                defaultPressureSets(it),
+                sets ?: HumidityChartSets(isAvgAllowed = isSelected),
             )
             it.copy(tabData = tabData)
         }
@@ -250,6 +310,23 @@ class HistoryDataViewModel(
                     pressure = tabState.pressure.copy(
                         chart = pressureChart
                     ),
+                )
+            })
+        }
+    }
+
+    override fun selectHumidityPoints(points: List<ChartPointEntry>, dayIndex: Int) {
+        _state.update {
+            it.copy(tabData = getTabData(it) { tabState ->
+                val humidityChart = tabState.humidity.copy(
+                    selectedEntries = getSelectedHumidityEntries(
+                        points,
+                        tabState.humidity.chartSets,
+                        tabState.startDate.plus(dayIndex, DateTimeUnit.DAY),
+                    )
+                )
+                tabState.copy(
+                    humidity = humidityChart,
                 )
             })
         }
@@ -297,10 +374,32 @@ class HistoryDataViewModel(
         } else null
     }
 
+    private fun getSelectedHumidityEntries(
+        points: List<ChartPointEntry>,
+        sets: HumidityChartSets,
+        date: LocalDate,
+    ): HumidityChartSelection? {
+        return if (points.isNotEmpty() && sets.isNotEmpty()) {
+            var index = 0
+            val increaseIndex = { index += 1 }
+
+            HumidityChartSelection(
+                max = if (sets.isMaxAllowed) points.getOrNull(index)
+                    .also { increaseIndex() } else null,
+                avg = if (sets.isAvgAllowed) points.getOrNull(index)
+                    .also { increaseIndex() } else null,
+                min = if (sets.isMinAllowed) points.getOrNull(index)
+                    .also { increaseIndex() } else null,
+                date = date,
+            )
+        } else null
+    }
+
     private suspend fun fetchTabData(
         tab: HistoryTab,
         tempChartSets: TempChartSets,
         pressureChartSets: PressureSets,
+        humidityChartSets: HumidityChartSets,
         startDate: LocalDate? = null,
     ): HistoryTabState {
         return withContext(defaultDispatcher) {
@@ -309,44 +408,20 @@ class HistoryDataViewModel(
                 HistoryTab.WEEK -> historyUseCase.getWeekHistory(startDate)
                 HistoryTab.MONTH -> historyUseCase.getMonthHistory(startDate)
             }
-        }.toTabData(tempChartSets, pressureChartSets, tab)
+        }.toTabData(tempChartSets, pressureChartSets, humidityChartSets, tab)
     }
 }
 
 fun History.toTabData(
     tempChartSets: TempChartSets,
     pressureSets: PressureSets,
+    humidityChartSets: HumidityChartSets,
     tab: HistoryTab,
 ): HistoryTabState {
     Logger.d("Loaded observations $this")
     with(this.observations) {
-        val minTemperature = minByOrNull { it.metric.tempLow }
-        val maxTemperature = maxByOrNull { it.metric.tempHigh }
-        val maxUV = maxByOrNull { it.uvHigh }
-        val maxRadiation = maxByOrNull { it.solarRadiationHigh }
-        val maxTemperatures =
-            map { it.dateTimeLocal.date to it.metric.tempHigh }.sortedBy { it.first.toEpochDays() }
-        val avgTemperatures =
-            map { it.dateTimeLocal.date to it.metric.tempAvg }.sortedBy { it.first.toEpochDays() }
-        val minTemperatures =
-            map { it.dateTimeLocal.date to it.metric.tempLow }.sortedBy { it.first.toEpochDays() }
         val prescriptionForPeriod = sumOf { it.metric.precipTotal }
         val windSpeedMax = maxByOrNull { it.metric.windspeedHigh }
-        val tempChartModel = listOfNotNull(
-            maxTemperatures.takeIf { tempChartSets.isMaxAllowed },
-            avgTemperatures.takeIf { tempChartSets.isAvgAllowed },
-            minTemperatures.takeIf { tempChartSets.isMinAllowed },
-        )
-        val maxPressure = maxByOrNull { it.metric.pressureMax }
-        val maxPressures =
-            map { it.dateTimeLocal.date to it.metric.pressureMax }.sortedBy { it.first.toEpochDays() }
-        val minPressure = minByOrNull { it.metric.pressureMin }
-        val minPressures =
-            map { it.dateTimeLocal.date to it.metric.pressureMin }.sortedBy { it.first.toEpochDays() }
-        val pressureModel = listOfNotNull(
-            maxPressures.takeIf { pressureSets.isMaxAllowed },
-            minPressures.takeIf { pressureSets.isMinAllowed },
-        )
         val startDate =
             this.minByOrNull { it.obsTimeUtc.toEpochDays() }?.obsTimeUtc?.toLocalDateTime(
                 TimeZone.UTC
@@ -354,50 +429,150 @@ fun History.toTabData(
         val xOffset =
             if (startDate <= firstDate) 0f else firstDate.until(startDate, DateTimeUnit.DAY)
                 .toFloat()
+
         return HistoryTabState(
             startDate = startDate,
-            uv = UvState(
-                maxUvIndex = maxUV?.uvHigh?.toInt() ?: 0,
-                maxRadiation = maxRadiation?.solarRadiationHigh ?: 0.0,
-                maxUvDate = maxUV?.dateTimeLocal?.date ?: startDate,
-                maxRadiationDate = maxRadiation?.dateTimeLocal?.date ?: startDate,
+            uv = createUvState(startDate),
+            temperature = createTemperatureState(
+                startDate,
+                tempChartSets,
+                tab,
+                xOffset
             ),
-            temperature = TemperatureState(
-                maxTemperature = maxTemperature?.metric?.tempHigh ?: 0.0,
-                minTemperature = minTemperature?.metric?.tempLow ?: 0.0,
-                maxDate = maxTemperature?.dateTimeLocal?.date ?: startDate,
-                minDate = minTemperature?.dateTimeLocal?.date ?: startDate,
-                chart = ChartState(
-                    observations = this,
-                    chartSets = tempChartSets,
-                    selectedEntries = null,
-                    bottomLabels = bottomLabels(tab),
-                    startDate = this@toTabData.firstDate,
-                    endDate = this@toTabData.lastDate,
-                    chartModel = tempChartModel.toChartModel(tab.daysCount, 0f, 25f, xOffset)
-                )
+            pressure = createPressureState(
+                startDate,
+                pressureSets,
+                tab,
+                xOffset
             ),
-            pressure = PressureState(
-                maxPressure = maxPressure?.metric?.pressureMax ?: 0.0,
-                maxPressureDate = maxPressure?.dateTimeLocal?.date ?: startDate,
-                minPressure = minPressure?.metric?.pressureMin ?: 0.0,
-                minPressureDate = maxPressure?.dateTimeLocal?.date ?: startDate,
-                trends = map { it.metric.pressureTrend },
-                chart = ChartState(
-                    observations = this,
-                    chartSets = pressureSets,
-                    selectedEntries = null,
-                    bottomLabels = bottomLabels(tab),
-                    startDate = this@toTabData.firstDate,
-                    endDate = this@toTabData.lastDate,
-                    chartModel = pressureModel.toChartModel(tab.daysCount, 1000f, 1025f, xOffset)
-                ),
-            ),
+            humidity = createHumidityState(humidityChartSets, tab, xOffset),
             maxWindSpeed = windSpeedMax?.metric?.windspeedHigh ?: 0.0,
             maxWindSpeedDate = windSpeedMax?.dateTimeLocal?.date ?: startDate,
             prescriptionForPeriod = prescriptionForPeriod,
         )
     }
+}
+
+private fun List<HistoryObservation>.createUvState(
+    startDate: LocalDate
+): UvState {
+    val maxUV = maxByOrNull { it.uvHigh }
+    val maxRadiation = maxByOrNull { it.solarRadiationHigh }
+
+    return UvState(
+        maxUvIndex = maxUV?.uvHigh?.toInt() ?: 0,
+        maxRadiation = maxRadiation?.solarRadiationHigh ?: 0.0,
+        maxUvDate = maxUV?.dateTimeLocal?.date ?: startDate,
+        maxRadiationDate = maxRadiation?.dateTimeLocal?.date ?: startDate,
+    )
+}
+
+fun History.createHumidityState(
+    humidityChartSets: HumidityChartSets,
+    tab: HistoryTab,
+    xOffset: Float
+): ChartState<HumidityChartSelection, HumidityChartSets> {
+    val maxHumidities =
+        observations.map { it.dateTimeLocal.date to it.humidityHigh }
+            .sortedBy { it.first.toEpochDays() }
+    val avgHumidities =
+        observations.map { it.dateTimeLocal.date to it.humidityAvg }
+            .sortedBy { it.first.toEpochDays() }
+    val minHumidities =
+        observations.map { it.dateTimeLocal.date to it.humidityLow }
+            .sortedBy { it.first.toEpochDays() }
+    val humidityModel = listOfNotNull(
+        maxHumidities.takeIf { humidityChartSets.isMaxAllowed },
+        avgHumidities.takeIf { humidityChartSets.isAvgAllowed },
+        minHumidities.takeIf { humidityChartSets.isMinAllowed },
+    )
+
+    return ChartState(
+        observations = observations,
+        chartSets = humidityChartSets,
+        selectedEntries = null,
+        bottomLabels = bottomLabels(tab),
+        startDate = firstDate,
+        endDate = lastDate,
+        chartModel = humidityModel.toChartModel(tab.daysCount, 0f, 100f, xOffset)
+    )
+}
+
+private fun History.createTemperatureState(
+    startDate: LocalDate,
+    tempChartSets: TempChartSets,
+    tab: HistoryTab,
+    xOffset: Float
+): TemperatureState {
+    val minTemperature = observations.minByOrNull { it.metric.tempLow }
+    val maxTemperature = observations.maxByOrNull { it.metric.tempHigh }
+    val maxTemperatures =
+        observations.map { it.dateTimeLocal.date to it.metric.tempHigh }
+            .sortedBy { it.first.toEpochDays() }
+    val avgTemperatures =
+        observations.map { it.dateTimeLocal.date to it.metric.tempAvg }
+            .sortedBy { it.first.toEpochDays() }
+    val minTemperatures =
+        observations.map { it.dateTimeLocal.date to it.metric.tempLow }
+            .sortedBy { it.first.toEpochDays() }
+    val tempChartModel = listOfNotNull(
+        maxTemperatures.takeIf { tempChartSets.isMaxAllowed },
+        avgTemperatures.takeIf { tempChartSets.isAvgAllowed },
+        minTemperatures.takeIf { tempChartSets.isMinAllowed },
+    )
+
+    return TemperatureState(
+        maxTemperature = maxTemperature?.metric?.tempHigh ?: 0.0,
+        minTemperature = minTemperature?.metric?.tempLow ?: 0.0,
+        maxDate = maxTemperature?.dateTimeLocal?.date ?: startDate,
+        minDate = minTemperature?.dateTimeLocal?.date ?: startDate,
+        chart = ChartState(
+            observations = observations,
+            chartSets = tempChartSets,
+            selectedEntries = null,
+            bottomLabels = bottomLabels(tab),
+            startDate = firstDate,
+            endDate = lastDate,
+            chartModel = tempChartModel.toChartModel(tab.daysCount, 0f, 25f, xOffset)
+        )
+    )
+}
+
+private fun History.createPressureState(
+    startDate: LocalDate,
+    pressureSets: PressureSets,
+    tab: HistoryTab,
+    xOffset: Float
+): PressureState {
+    val maxPressure = observations.maxByOrNull { it.metric.pressureMax }
+    val minPressure = observations.minByOrNull { it.metric.pressureMin }
+    val maxPressures =
+        observations.map { it.dateTimeLocal.date to it.metric.pressureMax }
+            .sortedBy { it.first.toEpochDays() }
+    val minPressures =
+        observations.map { it.dateTimeLocal.date to it.metric.pressureMin }
+            .sortedBy { it.first.toEpochDays() }
+    val pressureModel = listOfNotNull(
+        maxPressures.takeIf { pressureSets.isMaxAllowed },
+        minPressures.takeIf { pressureSets.isMinAllowed },
+    )
+
+    return PressureState(
+        maxPressure = maxPressure?.metric?.pressureMax ?: 0.0,
+        maxPressureDate = maxPressure?.dateTimeLocal?.date ?: startDate,
+        minPressure = minPressure?.metric?.pressureMin ?: 0.0,
+        minPressureDate = maxPressure?.dateTimeLocal?.date ?: startDate,
+        trends = observations.map { it.metric.pressureTrend },
+        chart = ChartState(
+            observations = observations,
+            chartSets = pressureSets,
+            selectedEntries = null,
+            bottomLabels = bottomLabels(tab),
+            startDate = firstDate,
+            endDate = lastDate,
+            chartModel = pressureModel.toChartModel(tab.daysCount, 1000f, 1025f, xOffset)
+        ),
+    )
 }
 
 private fun History.bottomLabels(tab: HistoryTab): List<String> {
@@ -442,7 +617,15 @@ interface HistoryDataActions {
 
     fun selectAvgTempChart(isSelected: Boolean)
 
+    fun selectMaxHumidity(isSelected: Boolean)
+
+    fun selectMinHumidity(isSelected: Boolean)
+
+    fun selectAvgHumidity(isSelected: Boolean)
+
     fun selectTempPoints(points: List<ChartPointEntry>, dayIndex: Int)
 
     fun selectPressurePoints(points: List<ChartPointEntry>, dayIndex: Int)
+
+    fun selectHumidityPoints(points: List<ChartPointEntry>, dayIndex: Int)
 }

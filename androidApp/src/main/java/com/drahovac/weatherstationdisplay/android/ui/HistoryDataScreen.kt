@@ -1,6 +1,5 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
-import android.icu.util.TimeUnit
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +57,8 @@ import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataState
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryTab
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryTabState
+import com.drahovac.weatherstationdisplay.viewmodel.HumidityChartSelection
+import com.drahovac.weatherstationdisplay.viewmodel.HumidityChartSets
 import com.drahovac.weatherstationdisplay.viewmodel.PressureChartSelection
 import com.drahovac.weatherstationdisplay.viewmodel.PressureSets
 import com.drahovac.weatherstationdisplay.viewmodel.TempChartSelection
@@ -146,6 +147,11 @@ private fun ScreenContent(
             state.currentTabData?.takeIf { it.pressure.chart.hasMultipleItems }
                 ?.let {
                     PressureChart(it.pressure.chart, actions)
+                }
+            Spacer(modifier = Modifier.height(16.dp))
+            state.currentTabData?.takeIf { it.humidity.hasMultipleItems }
+                ?.let {
+                    HumidityChart(it.humidity, actions)
                 }
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -442,6 +448,134 @@ private fun PressureChart(
 }
 
 @Composable
+private fun HumidityChart(
+    chartState: ChartState<HumidityChartSelection, HumidityChartSets>,
+    actions: HistoryDataActions
+) {
+    Text(
+        modifier = Modifier
+            .padding(horizontal = 2.dp)
+            .padding(bottom = 4.dp),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        text = stringResource(id = MR.strings.history_humidity.resourceId)
+    )
+    Row {
+        Column(Modifier.weight(1f)) {
+            HumidityChartLegend(
+                chartColors = humidityChartColors,
+                humidityChartSets = chartState.chartSets,
+                actions = actions
+            )
+        }
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = 4.dp)
+        ) {
+            chartState.selectedEntries?.let { selection ->
+                Text(
+                    text = selection.date.toFormattedDate(),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                selection.max?.let {
+                    HumidityEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_humidity_max.resourceId
+                    )
+                }
+                selection.avg?.let {
+                    HumidityEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_humidity_avg.resourceId
+                    )
+                }
+                selection.min?.let {
+                    HumidityEntryLine(
+                        value = it,
+                        labelId = MR.strings.history_humidity_min.resourceId
+                    )
+                }
+            }
+        }
+    }
+
+    val colors = humidityChartColors.filterHumiditySets(chartState.chartSets)
+    ProvideChartStyle(rememberChartStyle(colors)) {
+        Chart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 8.dp),
+            chart = lineChart(
+                axisValuesOverrider = object : AxisValuesOverrider<ChartEntryModel> {
+                    override fun getMinY(model: ChartEntryModel): Float {
+                        return model.minY
+                    }
+                }
+            ),
+            startAxis = startAxis(
+                maxLabelCount = 6,
+                label = rememberStartAxisLabel(),
+                horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
+                valueFormatter = { value, _ ->
+                    "$value %"
+                }
+            ),
+            marker = rememberMarker(),
+            markerVisibilityChangeListener = object : MarkerVisibilityChangeListener {
+                override fun onMarkerShown(
+                    marker: Marker,
+                    markerEntryModels: List<Marker.EntryModel>
+                ) {
+                    super.onMarkerShown(marker, markerEntryModels)
+                    actions.selectHumidityPoints(
+                        markerEntryModels.map { it.entry },
+                        markerEntryModels.firstOrNull()?.index ?: 0
+                    )
+                }
+
+                override fun onMarkerHidden(marker: Marker) {
+                    super.onMarkerHidden(marker)
+                    actions.selectHumidityPoints(emptyList(), 0)
+                }
+
+                override fun onMarkerMoved(
+                    marker: Marker,
+                    markerEntryModels: List<Marker.EntryModel>
+                ) {
+                    super.onMarkerMoved(marker, markerEntryModels)
+                    actions.selectHumidityPoints(
+                        markerEntryModels.map { it.entry },
+                        markerEntryModels.firstOrNull()?.index ?: 0
+                    )
+                }
+            },
+            bottomAxis = bottomAxis(
+                label = null,
+                itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
+            ),
+            chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
+            autoScaleUp = AutoScaleUp.Full,
+            horizontalLayout = HorizontalLayout.FullWidth(),
+            model = chartState.chartModel,
+        )
+    }
+    Row(Modifier.padding(horizontal = 4.dp)) {
+        Text(
+            text = "99 %",
+            fontSize = AXIS_LABEL_SIZE.sp,
+            modifier = Modifier.alpha(0f)
+        ) // Spacer for vert. axis
+        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
+            chartState.bottomLabels.forEach {
+                Text(text = it, fontSize = AXIS_LABEL_SIZE.sp)
+            }
+        }
+    }
+}
+
+@Composable
 private fun TemperatureEntryLine(value: ChartEntry, @StringRes labelId: Int) {
     Text(
         text = "${stringResource(labelId)} : ${value.y}${
@@ -467,6 +601,15 @@ private fun PressureEntryLine(value: ChartEntry, @StringRes labelId: Int) {
     )
 }
 
+@Composable
+private fun HumidityEntryLine(value: ChartEntry, @StringRes labelId: Int) {
+    Text(
+        text = "${stringResource(labelId)} : ${value.y} %",
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        style = MaterialTheme.typography.bodyMedium
+    )
+}
+
 private fun List<Color>.filterSets(tempChartSets: TempChartSets): List<Color> {
     return listOfNotNull(
         this[0].takeIf { tempChartSets.isMaxAllowed },
@@ -479,6 +622,14 @@ private fun List<Color>.filterPressureSets(pressureSets: PressureSets): List<Col
     return listOfNotNull(
         this[0].takeIf { pressureSets.isMaxAllowed },
         this[1].takeIf { pressureSets.isMinAllowed },
+    ).takeUnless { it.isEmpty() } ?: this
+}
+
+private fun List<Color>.filterHumiditySets(sets: HumidityChartSets): List<Color> {
+    return listOfNotNull(
+        this[0].takeIf { sets.isMaxAllowed },
+        this[1].takeIf { sets.isAvgAllowed },
+        this[2].takeIf { sets.isMinAllowed },
     ).takeUnless { it.isEmpty() } ?: this
 }
 
@@ -505,6 +656,32 @@ private fun TempChartLegend(
         color = chartColors[2],
         checked = tempChartSets.isMinAllowed,
         onClick = { actions.selectMinTempChart(it) },
+    )
+}
+
+@Composable
+private fun HumidityChartLegend(
+    humidityChartSets: HumidityChartSets,
+    chartColors: List<Color>,
+    actions: HistoryDataActions,
+) {
+    LegendLine(
+        label = stringResource(id = MR.strings.history_humidity_max.resourceId),
+        color = chartColors.first(),
+        checked = humidityChartSets.isMaxAllowed,
+        onClick = { actions.selectMaxHumidity(it) },
+    )
+    LegendLine(
+        label = stringResource(id = MR.strings.history_humidity_avg.resourceId),
+        color = chartColors[1],
+        checked = humidityChartSets.isAvgAllowed,
+        onClick = { actions.selectAvgHumidity(it) },
+    )
+    LegendLine(
+        label = stringResource(id = MR.strings.history_humidity_min.resourceId),
+        color = chartColors[2],
+        checked = humidityChartSets.isMinAllowed,
+        onClick = { actions.selectMinHumidity(it) },
     )
 }
 
@@ -664,7 +841,7 @@ private fun IntervalInfo(tabData: HistoryTabState, tab: HistoryTab, actions: His
                 if (tab == HistoryTab.MONTH) actions::selectNextMonth else actions::selectNextWeek
             val actionPrev =
                 if (tab == HistoryTab.MONTH) actions::selectPreviousMonth else actions::selectPreviousWeek
-            val timeUnit = if(tab == HistoryTab.MONTH) DateTimeUnit.MONTH else DateTimeUnit.WEEK
+            val timeUnit = if (tab == HistoryTab.MONTH) DateTimeUnit.MONTH else DateTimeUnit.WEEK
 
             IconButton(onClick = actionPrev) {
                 Icon(
@@ -802,6 +979,7 @@ fun HistoryDataScreenPreview() {
                     ).toTabData(
                         TempChartSets(),
                         PressureSets(),
+                        HumidityChartSets(),
                         HistoryTab.MONTH,
                     )
                 ),
@@ -833,6 +1011,14 @@ private val tempChartColors
         MaterialTheme.colorScheme.error,
         MaterialTheme.colorScheme.secondary,
         MaterialTheme.colorScheme.primary,
+    )
+
+private val humidityChartColors
+    @Composable
+    get() = listOf(
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.secondary,
+        MaterialTheme.colorScheme.tertiary,
     )
 
 private val pressureChartColors

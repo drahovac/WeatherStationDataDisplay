@@ -28,6 +28,14 @@ data class PressureSets(
     fun isNotEmpty() = isMaxAllowed || isMinAllowed
 }
 
+data class HumidityChartSets(
+    val isMaxAllowed: Boolean = true,
+    val isMinAllowed: Boolean = true,
+    val isAvgAllowed: Boolean = true,
+) {
+    fun isNotEmpty() = isMaxAllowed || isMinAllowed || isAvgAllowed
+}
+
 enum class HistoryTab {
     YESTERDAY, WEEK, MONTH
 }
@@ -37,6 +45,7 @@ data class HistoryTabState(
     val temperature: TemperatureState,
     val uv: UvState,
     val pressure: PressureState,
+    val humidity: ChartState<HumidityChartSelection, HumidityChartSets>,
     val prescriptionForPeriod: Double,
     val maxWindSpeed: Double,
     val maxWindSpeedDate: LocalDate,
@@ -97,6 +106,13 @@ data class PressureChartSelection(
     val maxPressure: ChartPointEntry?,
     val minPressure: ChartPointEntry?,
     val trend: Double?,
+    val date: LocalDate
+) : ChartSelection
+
+data class HumidityChartSelection(
+    val max: ChartPointEntry?,
+    val min: ChartPointEntry?,
+    val avg: ChartPointEntry?,
     val date: LocalDate
 ) : ChartSelection
 

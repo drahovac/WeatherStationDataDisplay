@@ -86,4 +86,8 @@
     <string name="history_next_month">Další měsíc</string>
     <string name="history_previous_month">Předchozí měsíc</string>
     <string name="history_no_data">Žádná data</string>
+    <string name="history_humidity">Vlhkost</string>
+    <string name="history_humidity_min">Min. vlhkost</string>
+    <string name="history_humidity_max">Max. vlhkost</string>
+    <string name="history_humidity_avg">Průměrná vlhkost</string>
 </resources>

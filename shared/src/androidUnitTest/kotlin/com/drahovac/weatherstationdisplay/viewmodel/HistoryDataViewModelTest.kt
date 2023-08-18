@@ -82,7 +82,8 @@ class HistoryDataViewModelTest {
             assertEquals(MAX_UV_MONTH.toInt(), it.tabData[HistoryTab.MONTH]!!.uv.maxUvIndex)
             assertEquals(PRESSURE_MAX, it.tabData[HistoryTab.MONTH]!!.pressure.maxPressure)
             assertEquals(PRESSURE_MIN, it.tabData[HistoryTab.MONTH]!!.pressure.minPressure)
-            assertEquals(17f,
+            assertEquals(
+                17f,
                 it.tabData[HistoryTab.MONTH]!!.temperature.chart.chartModel.entries.first()
                     .first().x
             )
@@ -306,6 +307,33 @@ class HistoryDataViewModelTest {
     }
 
     @Test
+    fun `set selection if all humidity charts selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectHumidityPoints(listOf(POINT1, POINT2, POINT3), 1)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.humidity.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertEquals(POINT1, selection.max)
+            assertEquals(POINT2, selection.avg)
+            assertEquals(POINT3, selection.min)
+        }
+    }
+
+    @Test
+    fun `set selection if only min humidity chart selected`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxHumidity(false)
+        historyDataViewModel.selectAvgHumidity(false)
+
+        historyDataViewModel.selectHumidityPoints(listOf(POINT1), 1)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.humidity.selectedEntries.let { selection ->
+            assertNotNull(selection)
+            assertNull(selection.max)
+            assertNull(selection.avg)
+            assertEquals(POINT1, selection.min)
+        }
+    }
+
+    @Test
     fun `fetch month data on select next month`() = runTest(dispatcher) {
         val expectedStart = LocalDate.parse("2023-09-01")
         coEvery { historyUseCase.getMonthHistory(expectedStart) } returns MONTH_HISTORY
@@ -352,6 +380,42 @@ class HistoryDataViewModelTest {
 
         coVerify { historyUseCase.getWeekHistory(expectedStart) }
         testScheduler.advanceTimeBy(1)
+    }
+
+    @Test
+    fun `unselect max humidity chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMaxHumidity(false)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
+            assertEquals(2, it.humidity.chartModel.entries.size)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isMinAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isAvgAllowed)
+        }
+    }
+
+    @Test
+    fun `unselect min humidity chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectMinHumidity(false)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
+            assertEquals(2, it.humidity.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isMaxAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isMinAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isAvgAllowed)
+        }
+    }
+
+    @Test
+    fun `unselect avg humidity chart`() = runTest(dispatcher) {
+        historyDataViewModel.selectAvgHumidity(false)
+
+        historyDataViewModel.state.value.tabData[HistoryTab.WEEK]!!.let {
+            assertEquals(2, it.humidity.chartModel.entries.size)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isMaxAllowed)
+            assertTrue(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isMinAllowed)
+            assertFalse(historyDataViewModel.state.value.currentTabData!!.humidity.chartSets.isAvgAllowed)
+        }
     }
 
     private companion object {
