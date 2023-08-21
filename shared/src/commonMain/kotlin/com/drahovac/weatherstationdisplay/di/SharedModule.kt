@@ -6,13 +6,16 @@ import co.touchlab.kermit.platformLogWriter
 import com.drahovac.weatherstationdisplay.data.CurrentWeatherDataRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.Database
 import com.drahovac.weatherstationdisplay.data.DeviceCredentialsRepositoryImpl
+import com.drahovac.weatherstationdisplay.data.ForecastRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.HistoryWeatherDataRepositoryImpl
 import com.drahovac.weatherstationdisplay.data.NetworkClient
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
+import com.drahovac.weatherstationdisplay.domain.ForecastRepository
 import com.drahovac.weatherstationdisplay.domain.HistoryWeatherDataRepository
 import com.drahovac.weatherstationdisplay.usecase.HistoryUseCase
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.ForecastViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryDataViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.HistoryInitViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.InitialDestinationViewModel
@@ -41,6 +44,8 @@ internal val sharedModule = module {
 
     single<HistoryWeatherDataRepository> { HistoryWeatherDataRepositoryImpl(get()) }
 
+    single<ForecastRepository> { ForecastRepositoryImpl(get()) }
+
     single { Database(get()) }
 
     kmmViewModel { SetupDeviceIdViewModel(get()) }
@@ -52,6 +57,8 @@ internal val sharedModule = module {
     kmmViewModel { HistoryInitViewModel(get(), get()) }
 
     kmmViewModel { HistoryDataViewModel(get()) }
+
+    kmmViewModel { ForecastViewModel(get(), get(), get()) }
 }
 
 internal expect inline fun <reified T : KMMViewModel> Module.kmmViewModel(

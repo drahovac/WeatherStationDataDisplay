@@ -5,7 +5,7 @@ package com.drahovac.weatherstationdisplay.domain;
  */
 enum class Destination {
 
-    SetupDeviceId, SetupApiKey, CurrentWeather, History;
+    SetupDeviceId, SetupApiKey, CurrentWeather, History, Forecast;
 
     /**
      * String representation of destination used as route in navigation.

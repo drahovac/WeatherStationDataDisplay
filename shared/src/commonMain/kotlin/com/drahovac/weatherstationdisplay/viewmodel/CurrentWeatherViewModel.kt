@@ -13,7 +13,7 @@ import kotlin.coroutines.coroutineContext
 
 class CurrentWeatherViewModel(
     private val currentWeatherDataRepository: CurrentWeatherDataRepository,
-    credentialsRepository: DeviceCredentialsRepository
+    private val credentialsRepository: DeviceCredentialsRepository
 ) : SecuredNavigationViewModel(credentialsRepository) {
 
     private val _state = MutableStateFlow(CurrentWeatherState())
@@ -25,6 +25,9 @@ class CurrentWeatherViewModel(
         while (coroutineContext.isActive) {
             val result = currentWeatherDataRepository.getCurrentData()
             _state.update { CurrentWeatherState(result.getOrNull(), result.networkErrorOrNull()) }
+            result.getOrNull()?.let {
+                credentialsRepository.saveStationCode(it.stationCode)
+            }
             delay(DELAY)
         }
     }

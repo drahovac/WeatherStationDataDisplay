@@ -32,15 +32,13 @@ class NetworkClient(
     suspend fun <T> request(
         path: String,
         params: Map<String, String>,
-        typeInfo: TypeInfo
+        typeInfo: TypeInfo,
+        skipStationID: Boolean = false,
     ): Result<T> {
         return withContext(Dispatchers.IO) {
             val deviceId = deviceCredentialsRepository.getDeviceId()
             val apiKey = deviceCredentialsRepository.getApiKey()
-            val securedParams = mutableMapOf(
-                "stationId" to deviceId.orEmpty(),
-                "apiKey" to apiKey.orEmpty(),
-            ).apply {
+            val securedParams = securedParams(deviceId, apiKey, skipStationID).apply {
                 putAll(params)
             }
 
@@ -67,6 +65,21 @@ class NetworkClient(
                 }
             }
         }
+    }
+
+    private fun securedParams(
+        deviceId: String?,
+        apiKey: String?,
+        skipStationID: Boolean
+    ) = if (skipStationID) {
+        mutableMapOf(
+            "apiKey" to apiKey.orEmpty(),
+        )
+    } else {
+        mutableMapOf(
+            "stationId" to deviceId.orEmpty(),
+            "apiKey" to apiKey.orEmpty(),
+        )
     }
 
     private fun HttpClientConfig<*>.clientConfiguration() {

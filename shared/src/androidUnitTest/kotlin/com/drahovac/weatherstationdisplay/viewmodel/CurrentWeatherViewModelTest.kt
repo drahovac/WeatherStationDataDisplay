@@ -1,10 +1,10 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
+import com.drahovac.weatherstationdisplay.domain.CurrentMetric
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
 import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
-import com.drahovac.weatherstationdisplay.domain.CurrentMetric
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -58,6 +58,16 @@ internal class CurrentWeatherViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
+    fun `save code from observe weather`() = runTest(testDispatcher) {
+        val job = launch { currentWeatherViewModel.observeWeather() }
+        advanceTimeBy(1)
+
+        coVerify { credentialsRepository.saveStationCode("37.77,-122.45") }
+        job.cancel()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
     fun `renew api key`() = runTest(testDispatcher) {
         currentWeatherViewModel.onNewApiKey()
 
@@ -84,7 +94,7 @@ internal class CurrentWeatherViewModelTest {
         )
     }
 
-    private companion object {
+     companion object {
         val OBSERVATION = CurrentWeatherObservation(
             stationID = "KSFO",
             obsTimeUtc = "2023-07-20T12:47:54Z",

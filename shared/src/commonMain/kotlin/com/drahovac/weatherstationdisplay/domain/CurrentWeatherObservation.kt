@@ -20,4 +20,6 @@ data class CurrentWeatherObservation(
     val humidity: Double,
     val qcStatus: Int,
     val metric: CurrentMetric
-)
+) {
+    val stationCode: String = "${lat},${lon}"
+}

@@ -7,4 +7,6 @@ interface DeviceCredentialsRepository {
     suspend fun saveApiKey(key: String)
     suspend fun removeApiKey()
     suspend fun removeDeviceId()
+    suspend fun saveStationCode(code: String)
+    suspend fun getStationCode() : String?
 }
