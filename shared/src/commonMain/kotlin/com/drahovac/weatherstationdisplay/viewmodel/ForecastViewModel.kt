@@ -61,7 +61,6 @@ class ForecastViewModel(
         return ForecastState(
             days = List(5) { dayIndex ->
                 val dayPartIndexes = listOf(2 * dayIndex, 2 * dayIndex + 1)
-                println("vaclav $dayPartIndexes")
                 val dayPart = daypart.first()
 
                 ForecastDayState(
