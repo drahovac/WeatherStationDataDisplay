@@ -24,6 +24,23 @@ fun LabelValueField(
 }
 
 @Composable
+fun LabelValueFieldPair(
+    label1: String,
+    value1: String,
+    label2: String,
+    value2: String,
+) {
+    Row {
+        Column(Modifier.weight(1f)) {
+            LabelValueField(label = label1, value = value1)
+        }
+        Column(Modifier.weight(1f)) {
+            LabelValueField(label = label2, value = value2)
+        }
+    }
+}
+
+@Composable
 fun LabelValueFieldWithUnits(
     label: String,
     value: String,
@@ -64,6 +81,12 @@ fun LabelValueFieldPreview() {
         Column {
             LabelValueField(label = "Label", value = "Value")
             LabelValueFieldWithUnits(label = "Label", value = "Value", units = "Unit")
+            LabelValueFieldPair(
+                label1 = "Label1",
+                value1 = "Value1",
+                label2 = "Label2",
+                value2 = "Value2"
+            )
         }
     }
 }

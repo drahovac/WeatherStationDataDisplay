@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
 import com.drahovac.weatherstationdisplay.android.ui.CurrentWeatherScreen
+import com.drahovac.weatherstationdisplay.android.ui.ForecastScreen
 import com.drahovac.weatherstationdisplay.android.ui.HistoryInitScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupApiKeyScreen
 import com.drahovac.weatherstationdisplay.android.ui.SetupDeviceIdScreen
@@ -129,6 +130,10 @@ private fun MainContent(
             composable(Destination.History.route()) {
                 HistoryInitScreen()
             }
+
+            composable(Destination.Forecast.route()) {
+                ForecastScreen()
+            }
         }
     }
 }
@@ -168,6 +173,20 @@ private fun BottomNavigation(navController: NavHostController) {
                 selected = destination == Destination.History,
                 onClick = {
                     navController.popCurrent(Destination.History)
+                })
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_thunderstorm_24),
+                        contentDescription = null
+                    )
+                },
+                label = {
+                    Text(text = stringResource(id = MR.strings.forecast.resourceId))
+                },
+                selected = destination == Destination.Forecast,
+                onClick = {
+                    navController.popCurrent(Destination.Forecast)
                 })
         }
     }
