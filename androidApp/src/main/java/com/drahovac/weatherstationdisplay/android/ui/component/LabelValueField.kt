@@ -16,6 +16,11 @@ fun LabelValueField(
     value: String
 ) {
     LabelField(label)
+    ValueField(value)
+}
+
+@Composable
+fun ValueField(value: String) {
     Text(
         text = value,
         style = MaterialTheme.typography.headlineSmall,

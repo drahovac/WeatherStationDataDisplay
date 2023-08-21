@@ -305,7 +305,7 @@ private fun RowScope.Humidity(
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
         Text(
-            text = "${humidity}%",
+            text = "${humidity} %",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )

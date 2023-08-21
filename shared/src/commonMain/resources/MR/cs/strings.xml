@@ -135,4 +135,12 @@
     <string name="weather_heavy_snow">Silný sníh</string>
     <string name="weather_blizzard">Mrazivá vánice</string>
     <string name="weather_not_available">Není k dispozici (N/A)</string>
+    <string name="weather_rain_outlook">Očekávané srážky</string>
+    <string name="weather_snowfall_outlook">Očekávané sněžení</string>
+    <string name="weather_snowfall_cm">cm</string>
+    <string name="weather_sunset">Východ Slunce</string>
+    <string name="weather_sunrise">Západ Slunce</string>
+    <string name="weather_moonphase">Fáze měsíce</string>
+    <string name="weather_24_forecast">24h Předpověď</string>
+    <string name="weather_relative_humidity">Relativní vlhkost</string>
 </resources>

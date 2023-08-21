@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
@@ -16,24 +18,29 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.android.R
+import com.drahovac.weatherstationdisplay.android.ui.component.LabelField
+import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueField
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueFieldPair
+import com.drahovac.weatherstationdisplay.android.ui.component.ValueField
 import com.drahovac.weatherstationdisplay.domain.toLocalizedShortDayName
+import com.drahovac.weatherstationdisplay.viewmodel.DayPartState
 import com.drahovac.weatherstationdisplay.viewmodel.ForecastActions
 import com.drahovac.weatherstationdisplay.viewmodel.ForecastDayState
 import com.drahovac.weatherstationdisplay.viewmodel.ForecastViewModel
+import com.drahovac.weatherstationdisplay.viewmodel.MoonPhase
 import kotlinx.datetime.LocalDateTime
 import org.koin.androidx.compose.getViewModel
+import java.util.Locale
 
 @Composable
 fun ForecastScreen(viewModel: ForecastViewModel = getViewModel()) {
@@ -94,29 +101,113 @@ private fun ScreenContent(
                 .padding(horizontal = 16.dp)
         ) {
             selectedDayState?.let { day ->
-                Row {
-                    day.icon.weatherIcon(
-                        Modifier
-                            .padding(top = 16.dp)
-                            .size(64.dp)
-                    )
-                    Text(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp)
-                            .align(CenterVertically),
-                        textAlign = TextAlign.End,
-                        text = day.narrative,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
+                Spacer(modifier = Modifier.height(8.dp))
+                ForecastDesc(
+                    icon = day.icon,
+                    narrative = day.narrative,
+                    label = stringResource(id = MR.strings.weather_24_forecast.resourceId)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 LabelValueFieldPair(
                     label1 = stringResource(id = MR.strings.history_max_temperature.resourceId),
                     value1 = day.temperatureMax.degrees,
                     label2 = stringResource(id = MR.strings.history_min_temperature.resourceId),
                     value2 = day.temperatureMin.degrees,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LabelValueFieldPair(
+                    label1 = stringResource(id = MR.strings.weather_rain_outlook.resourceId),
+                    value1 = "${day.rainOutlook} ${stringResource(id = MR.strings.current_mm.resourceId)}",
+                    label2 = stringResource(id = MR.strings.weather_snowfall_outlook.resourceId),
+                    value2 = "${day.snowOutlook} ${stringResource(id = MR.strings.weather_snowfall_cm.resourceId)}",
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LabelValueFieldPair(
+                    label1 = stringResource(id = MR.strings.current_uv.resourceId),
+                    value1 = day.uvIndex,
+                    label2 = stringResource(id = MR.strings.weather_sunrise.resourceId),
+                    value2 = day.sunrise,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row {
+                    Column(Modifier.weight(1f)) {
+                        MoonPhase(day)
+                    }
+                    Column(Modifier.weight(1f)) {
+                        LabelValueField(
+                            label = stringResource(id = MR.strings.weather_sunset.resourceId),
+                            value = day.sunset,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+                day.dayParts.forEach {
+                    DayPart(it)
+                }
+                Spacer(modifier = Modifier.height(36.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DayPart(part: DayPartState) {
+    Divider(Modifier.fillMaxWidth())
+    Spacer(modifier = Modifier.height(8.dp))
+    ForecastDesc(
+        icon = part.icon,
+        narrative = part.narrative,
+        label = part.name,
+        precChance = "${part.precipDesc.capitalize(Locale.getDefault())}: ${part.precipChance} % \n${
+            stringResource(id = MR.strings.weather_relative_humidity.resourceId)
+        }: ${part.relativeHumidity} %"
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+private fun MoonPhase(day: ForecastDayState) {
+    LabelField(stringResource(id = MR.strings.weather_moonphase.resourceId))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            modifier = Modifier.size(64.dp),
+            painter = painterResource(id = day.moonPhase.drawableRes),
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        ValueField(value = day.moonPhaseDesc)
+    }
+}
+
+@Composable
+private fun ForecastDesc(
+    label: String,
+    icon: Int,
+    narrative: String,
+    precChance: String? = null,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        icon.WeatherIcon(
+            Modifier
+                .padding(top = 16.dp)
+                .size(64.dp)
+        )
+        Column(Modifier.padding(start = 24.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = narrative,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            precChance?.let {
+                Text(
+                    text = precChance,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -125,7 +216,7 @@ private fun ScreenContent(
 
 
 @Composable
-private fun Int.weatherIcon(modifier: Modifier = Modifier) {
+private fun Int.WeatherIcon(modifier: Modifier = Modifier) {
     val iconWithLabel = when (this) {
         0 -> Pair(R.drawable.weather_tornado, MR.strings.weather_tornado)
         1 -> Pair(R.drawable.weather_tornado, MR.strings.weather_tropical_storm)
@@ -183,6 +274,19 @@ private fun Int.weatherIcon(modifier: Modifier = Modifier) {
     )
 }
 
+private val MoonPhase.drawableRes: Int
+    get() {
+        return when (this) {
+            MoonPhase.NEW -> R.drawable.moon_new
+            MoonPhase.FIRST_QUARTER -> R.drawable.moon_first_quarter
+            MoonPhase.FULL -> R.drawable.moon_full
+            MoonPhase.LAST_QUARTER -> R.drawable.moon_last_quarter
+            MoonPhase.WANING_CRESCENT -> R.drawable.moon_waning_crescent
+            MoonPhase.WANING_GIBBOUS -> R.drawable.moon_waning_gibbous
+            MoonPhase.WAXING_CRESCENT -> R.drawable.moon_waxing_crescent
+            MoonPhase.WAXING_GIBBOUS -> R.drawable.moon_waxing_gibbous
+        }
+    }
 private val Int?.degrees: String
     @Composable
     get() {
@@ -200,7 +304,32 @@ fun ForecastScreenPreview() {
             temperatureMax = 23,
             temperatureMin = 22,
             icon = 3,
+            rainOutlook = 2.0,
+            snowOutlook = 3.0,
             narrative = "Mrazivá vánice",
+            sunrise = "4:32",
+            sunset = "20:00",
+            moonPhaseDesc = "Úplněk",
+            moonPhase = MoonPhase.FULL,
+            dayParts = listOf(
+                DayPartState(
+                    "Night",
+                    2,
+                    "Bude hezky",
+                    30,
+                    "Srážky",
+                    13,
+                ),
+                DayPartState(
+                    "Day",
+                    5,
+                    "Bude ošklivo",
+                    45,
+                    "Sněhánky",
+                    99,
+                ),
+            ),
+            uvIndex = "6, Vysoký"
         )
 
         ScreenContent(

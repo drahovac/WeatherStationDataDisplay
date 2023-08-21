@@ -30,8 +30,16 @@ data class Forecast(
     val daypart: List<Daypart>
 ) {
 
-    val dateTimes: List<Instant> = validTimeUtc.map {
+    val dateTimesUtc: List<Instant> = validTimeUtc.map {
         Instant.fromEpochSeconds(it)
+    }
+
+    val sunsetsUtc: List<Instant?> = sunsetTimeUtc.map {
+        it?.let { Instant.fromEpochSeconds(it) }
+    }
+
+    val sunrisesUtc: List<Instant?> = sunriseTimeUtc.map {
+        it?.let { Instant.fromEpochSeconds(it) }
     }
 }
 
@@ -130,8 +138,8 @@ val forecastPrototype = Forecast(
             temperatureWindChill = listOf(14.0),
             thunderCategory = listOf(""),
             thunderIndex = listOf(0),
-            uvDescription = listOf(""),
-            uvIndex = listOf(0),
+            uvDescription = listOf("high","low","high","low","low","low","low","low","low","low",),
+            uvIndex = listOf(0, 1, 0,5,0,6,0,7,0,8),
             windDirection = listOf(270),
             windDirectionCardinal = listOf("WNW"),
             windPhrase = listOf("Windy"),

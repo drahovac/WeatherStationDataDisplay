@@ -140,5 +140,12 @@
     <string name="weather_heavy_snow">Heavy Snow</string>
     <string name="weather_blizzard">Blizzard</string>
     <string name="weather_not_available">Not Available (N/A)</string>
-
+    <string name="weather_rain_outlook">Rain Outlook</string>
+    <string name="weather_snowfall_outlook">Snowfall Outlook</string>
+    <string name="weather_snowfall_cm">cm</string>
+    <string name="weather_sunset">Sunset</string>
+    <string name="weather_sunrise">Sunrise</string>
+    <string name="weather_moonphase">Moon phase</string>
+    <string name="weather_24_forecast">24-Hour Forecast</string>
+    <string name="weather_relative_humidity">Relative humidity</string>
 </resources>

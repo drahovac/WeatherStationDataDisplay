@@ -127,6 +127,7 @@ class ForecastViewModelTest {
         forecastViewModel.state.value.selectedDay?.let {
             assertEquals(28, it.temperatureMax)
             assertEquals(19, it.temperatureMin)
+            assertEquals("6, low", it.uvIndex)
         }
     }
 

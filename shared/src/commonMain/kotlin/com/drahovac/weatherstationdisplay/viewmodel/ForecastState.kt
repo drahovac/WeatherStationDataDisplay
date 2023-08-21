@@ -15,6 +15,28 @@ data class ForecastDayState(
     val dateTime: LocalDateTime,
     val temperatureMax: Int?,
     val temperatureMin: Int?,
+    val snowOutlook: Double,
+    val rainOutlook: Double,
+    val sunrise: String,
+    val sunset: String,
     val icon: Int,
     val narrative: String,
+    val moonPhase: MoonPhase,
+    val moonPhaseDesc: String,
+    val dayParts: List<DayPartState>,
+    val uvIndex: String,
 )
+
+data class DayPartState(
+    val name: String,
+    val icon: Int,
+    val narrative: String,
+    val precipChance: Int,
+    val precipDesc: String,
+    val relativeHumidity: Int,
+)
+
+enum class MoonPhase {
+    NEW, FIRST_QUARTER, FULL, LAST_QUARTER,
+    WANING_CRESCENT, WANING_GIBBOUS, WAXING_CRESCENT, WAXING_GIBBOUS,
+}
