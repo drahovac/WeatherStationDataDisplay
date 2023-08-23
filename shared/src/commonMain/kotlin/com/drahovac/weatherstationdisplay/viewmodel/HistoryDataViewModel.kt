@@ -5,6 +5,7 @@ import com.drahovac.weatherstationdisplay.domain.History
 import com.drahovac.weatherstationdisplay.domain.HistoryObservation
 import com.drahovac.weatherstationdisplay.domain.firstDayOfMonth
 import com.drahovac.weatherstationdisplay.domain.firstDayOfWeek
+import com.drahovac.weatherstationdisplay.domain.orZero
 import com.drahovac.weatherstationdisplay.domain.toEpochDays
 import com.drahovac.weatherstationdisplay.domain.toFormattedDate
 import com.drahovac.weatherstationdisplay.domain.toLocalizedShortDayName
@@ -420,8 +421,8 @@ fun History.toTabData(
 ): HistoryTabState {
     Logger.d("Loaded observations $this")
     with(this.observations) {
-        val prescriptionForPeriod = sumOf { it.metric.precipTotal }
-        val windSpeedMax = maxByOrNull { it.metric.windspeedHigh }
+        val prescriptionForPeriod = sumOf { it.metric.precipTotal.orZero }
+        val windSpeedMax = maxByOrNull { it.metric.windspeedHigh.orZero }
         val startDate =
             this.minByOrNull { it.obsTimeUtc.toEpochDays() }?.obsTimeUtc?.toLocalDateTime(
                 TimeZone.UTC
@@ -456,8 +457,8 @@ fun History.toTabData(
 private fun List<HistoryObservation>.createUvState(
     startDate: LocalDate
 ): UvState {
-    val maxUV = maxByOrNull { it.uvHigh }
-    val maxRadiation = maxByOrNull { it.solarRadiationHigh }
+    val maxUV = maxByOrNull { it.uvHigh.orZero }
+    val maxRadiation = maxByOrNull { it.solarRadiationHigh.orZero }
 
     return UvState(
         maxUvIndex = maxUV?.uvHigh?.toInt() ?: 0,
@@ -473,13 +474,13 @@ fun History.createHumidityState(
     xOffset: Float
 ): ChartState<HumidityChartSelection, HumidityChartSets> {
     val maxHumidities =
-        observations.map { it.dateTimeLocal.date to it.humidityHigh }
+        observations.map { it.dateTimeLocal.date to it.humidityHigh.orZero }
             .sortedBy { it.first.toEpochDays() }
     val avgHumidities =
-        observations.map { it.dateTimeLocal.date to it.humidityAvg }
+        observations.map { it.dateTimeLocal.date to it.humidityAvg.orZero }
             .sortedBy { it.first.toEpochDays() }
     val minHumidities =
-        observations.map { it.dateTimeLocal.date to it.humidityLow }
+        observations.map { it.dateTimeLocal.date to it.humidityLow.orZero }
             .sortedBy { it.first.toEpochDays() }
     val humidityModel = listOfNotNull(
         maxHumidities.takeIf { humidityChartSets.isMaxAllowed },
@@ -504,16 +505,16 @@ private fun History.createTemperatureState(
     tab: HistoryTab,
     xOffset: Float
 ): TemperatureState {
-    val minTemperature = observations.minByOrNull { it.metric.tempLow }
-    val maxTemperature = observations.maxByOrNull { it.metric.tempHigh }
+    val minTemperature = observations.minByOrNull { it.metric.tempLow.orZero }
+    val maxTemperature = observations.maxByOrNull { it.metric.tempHigh.orZero }
     val maxTemperatures =
-        observations.map { it.dateTimeLocal.date to it.metric.tempHigh }
+        observations.map { it.dateTimeLocal.date to it.metric.tempHigh.orZero }
             .sortedBy { it.first.toEpochDays() }
     val avgTemperatures =
-        observations.map { it.dateTimeLocal.date to it.metric.tempAvg }
+        observations.map { it.dateTimeLocal.date to it.metric.tempAvg.orZero }
             .sortedBy { it.first.toEpochDays() }
     val minTemperatures =
-        observations.map { it.dateTimeLocal.date to it.metric.tempLow }
+        observations.map { it.dateTimeLocal.date to it.metric.tempLow.orZero }
             .sortedBy { it.first.toEpochDays() }
     val tempChartModel = listOfNotNull(
         maxTemperatures.takeIf { tempChartSets.isMaxAllowed },
@@ -544,13 +545,13 @@ private fun History.createPressureState(
     tab: HistoryTab,
     xOffset: Float
 ): PressureState {
-    val maxPressure = observations.maxByOrNull { it.metric.pressureMax }
-    val minPressure = observations.minByOrNull { it.metric.pressureMin }
+    val maxPressure = observations.maxByOrNull { it.metric.pressureMax.orZero }
+    val minPressure = observations.minByOrNull { it.metric.pressureMin.orZero }
     val maxPressures =
-        observations.map { it.dateTimeLocal.date to it.metric.pressureMax }
+        observations.map { it.dateTimeLocal.date to it.metric.pressureMax.orZero }
             .sortedBy { it.first.toEpochDays() }
     val minPressures =
-        observations.map { it.dateTimeLocal.date to it.metric.pressureMin }
+        observations.map { it.dateTimeLocal.date to it.metric.pressureMin.orZero }
             .sortedBy { it.first.toEpochDays() }
     val pressureModel = listOfNotNull(
         maxPressures.takeIf { pressureSets.isMaxAllowed },
@@ -562,7 +563,7 @@ private fun History.createPressureState(
         maxPressureDate = maxPressure?.dateTimeLocal?.date ?: startDate,
         minPressure = minPressure?.metric?.pressureMin ?: 0.0,
         minPressureDate = maxPressure?.dateTimeLocal?.date ?: startDate,
-        trends = observations.map { it.metric.pressureTrend },
+        trends = observations.map { it.metric.pressureTrend.orZero },
         chart = ChartState(
             observations = observations,
             chartSets = pressureSets,

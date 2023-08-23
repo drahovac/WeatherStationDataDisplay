@@ -43,12 +43,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.drahovac.weatherstationdisplay.MR
-import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.theme.WeatherTheme
 import com.drahovac.weatherstationdisplay.domain.CurrentMetric
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherObservation
-import com.drahovac.weatherstationdisplay.domain.NetworkError
+import com.drahovac.weatherstationdisplay.domain.orZero
 import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModel
+import com.patrykandpatrick.vico.core.extension.orZero
+import com.patrykandpatrick.vico.core.extension.orZeroInt
 import org.koin.androidx.compose.getViewModel
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -96,19 +97,19 @@ private fun ScreenContent(
                 .padding(top = 24.dp)
         ) {
             CurrentTemperature(
-                temp = state.metric.temp,
-                heatIndex = state.metric.heatIndex,
+                temp = state.metric.temp.orZero,
+                heatIndex = state.metric.heatIndex.orZero,
                 celsius = celsius
             )
-            UvIndex(state.uv.roundToInt())
+            UvIndex(state.uv?.roundToInt().orZero)
         }
         Row(Modifier.padding(horizontal = 24.dp)) {
             Humidity(
-                dewpt = state.metric.dewpt,
-                humidity = state.humidity,
-                pressure = state.metric.pressure,
-                precRate = state.metric.precipRate,
-                precTotal = state.metric.precipTotal,
+                dewpt = state.metric.dewpt.orZero,
+                humidity = state.humidity.orZero,
+                pressure = state.metric.pressure.orZero,
+                precRate = state.metric.precipRate.orZero,
+                precTotal = state.metric.precipTotal.orZero,
                 celsius = celsius,
             )
             Column(
@@ -117,8 +118,12 @@ private fun ScreenContent(
                     .padding(start = 16.dp, top = 24.dp),
                 horizontalAlignment = CenterHorizontally,
             ) {
-                SolarRadiation(state.solarRadiation)
-                Wind(state.metric.windSpeed, state.winddir, state.metric.windGust)
+                SolarRadiation(state.solarRadiation.orZero)
+                Wind(
+                    state.metric.windSpeed.orZero,
+                    state.winddir.orZeroInt,
+                    state.metric.windGust.orZero
+                )
             }
         }
     }
