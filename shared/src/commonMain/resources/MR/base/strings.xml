@@ -148,4 +148,7 @@
     <string name="weather_moonphase">Moon phase</string>
     <string name="weather_24_forecast">24-Hour Forecast</string>
     <string name="weather_relative_humidity">Relative humidity</string>
+    <string name="weather_precip">Precip</string>
+    <string name="weather_rain">Rain</string>
+    <string name="weather_snow">Snow</string>
 </resources>

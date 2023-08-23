@@ -1,6 +1,7 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
 import com.drahovac.weatherstationdisplay.domain.NetworkError
+import dev.icerock.moko.resources.StringResource
 import kotlinx.datetime.LocalDateTime
 
 data class ForecastState(
@@ -32,7 +33,7 @@ data class DayPartState(
     val icon: Int,
     val narrative: String,
     val precipChance: Int,
-    val precipDesc: String,
+    val precipDesc: StringResource?,
     val relativeHumidity: Int,
 )
 

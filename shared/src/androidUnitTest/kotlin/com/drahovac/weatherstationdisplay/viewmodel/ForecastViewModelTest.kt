@@ -128,6 +128,7 @@ class ForecastViewModelTest {
             assertEquals(28, it.temperatureMax)
             assertEquals(19, it.temperatureMin)
             assertEquals("6, low", it.uvIndex)
+            assertEquals("More sun than clouds. High 28C. Winds W at 10 to 15 km/h.", it.narrative)
         }
     }
 

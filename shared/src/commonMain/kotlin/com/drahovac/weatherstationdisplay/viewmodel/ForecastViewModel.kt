@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.viewmodel
 
+import com.drahovac.weatherstationdisplay.MR
 import com.drahovac.weatherstationdisplay.domain.CurrentWeatherDataRepository
 import com.drahovac.weatherstationdisplay.domain.Daypart
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
@@ -10,6 +11,7 @@ import com.drahovac.weatherstationdisplay.domain.language
 import com.drahovac.weatherstationdisplay.domain.networkErrorOrNull
 import com.rickclephas.kmm.viewmodel.coroutineScope
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
+import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -69,10 +71,13 @@ class ForecastViewModel(
                     temperatureMin = calendarDayTemperatureMin[dayIndex],
                     snowOutlook = qpfSnow[dayIndex],
                     rainOutlook = qpf[dayIndex],
-                    icon = daypart.first().iconCode.firstNotNullOf { it },
+                    icon = daypart.first().iconCode.subList(
+                        dayPartIndexes.first(),
+                        dayPartIndexes.last()
+                    ).firstNotNullOf { it },
                     sunrise = sunrisesUtc[dayIndex].toTimeString(),
                     sunset = sunsetsUtc[dayIndex].toTimeString(),
-                    narrative = narrative.first(),
+                    narrative = narrative[dayIndex],
                     moonPhase = moonPhaseCode[dayIndex].toPhase(),
                     moonPhaseDesc = moonPhase[dayIndex],
                     dayParts = dayPartIndexes.mapNotNull { index -> dayPart.toDayPartsState(index) },
@@ -102,11 +107,19 @@ private fun Daypart.toDayPartsState(index: Int): DayPartState? {
             name = daypartName[index]!!,
             narrative = narrative[index].orEmpty(),
             precipChance = precipChance[index] ?: 0,
-            precipDesc = precipType[index] ?: "",
+            precipDesc = precipType[index]?.precTypeResource(),
             relativeHumidity = relativeHumidity[index] ?: 0
         )
     } else null
 }
+
+private fun String?.precTypeResource(): StringResource? = when (this) {
+    "precip" -> MR.strings.weather_precip
+    "rain" -> MR.strings.weather_rain
+    "snow" -> MR.strings.weather_snow
+    else -> null
+}
+
 
 private fun String.toPhase(): MoonPhase {
     return when (this) {

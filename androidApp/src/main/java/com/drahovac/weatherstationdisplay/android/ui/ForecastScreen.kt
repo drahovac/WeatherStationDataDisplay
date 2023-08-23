@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
@@ -31,7 +30,6 @@ import com.drahovac.weatherstationdisplay.android.R
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelField
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueField
 import com.drahovac.weatherstationdisplay.android.ui.component.LabelValueFieldPair
-import com.drahovac.weatherstationdisplay.android.ui.component.ValueField
 import com.drahovac.weatherstationdisplay.domain.toLocalizedShortDayName
 import com.drahovac.weatherstationdisplay.viewmodel.DayPartState
 import com.drahovac.weatherstationdisplay.viewmodel.ForecastActions
@@ -40,7 +38,6 @@ import com.drahovac.weatherstationdisplay.viewmodel.ForecastViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.MoonPhase
 import kotlinx.datetime.LocalDateTime
 import org.koin.androidx.compose.getViewModel
-import java.util.Locale
 
 @Composable
 fun ForecastScreen(viewModel: ForecastViewModel = getViewModel()) {
@@ -158,7 +155,9 @@ private fun DayPart(part: DayPartState) {
         icon = part.icon,
         narrative = part.narrative,
         label = part.name,
-        precChance = "${part.precipDesc.capitalize(Locale.getDefault())}: ${part.precipChance} % \n${
+        precChance = "${
+            part.precipDesc?.let { stringResource(id = it.resourceId) }.orEmpty()
+        }: ${part.precipChance} % \n${
             stringResource(id = MR.strings.weather_relative_humidity.resourceId)
         }: ${part.relativeHumidity} %"
     )
@@ -168,15 +167,16 @@ private fun DayPart(part: DayPartState) {
 @Composable
 private fun MoonPhase(day: ForecastDayState) {
     LabelField(stringResource(id = MR.strings.weather_moonphase.resourceId))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            modifier = Modifier.size(64.dp),
-            painter = painterResource(id = day.moonPhase.drawableRes),
-            contentDescription = null
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        ValueField(value = day.moonPhaseDesc)
-    }
+    Icon(
+        modifier = Modifier.size(64.dp),
+        painter = painterResource(id = day.moonPhase.drawableRes),
+        contentDescription = null
+    )
+    Text(
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        text = day.moonPhaseDesc
+    )
 }
 
 @Composable
@@ -317,7 +317,7 @@ fun ForecastScreenPreview() {
                     2,
                     "Bude hezky",
                     30,
-                    "Srážky",
+                    MR.strings.weather_precip,
                     13,
                 ),
                 DayPartState(
@@ -325,7 +325,7 @@ fun ForecastScreenPreview() {
                     5,
                     "Bude ošklivo",
                     45,
-                    "Sněhánky",
+                    MR.strings.weather_snow,
                     99,
                 ),
             ),
