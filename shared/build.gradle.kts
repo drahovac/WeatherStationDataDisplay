@@ -1,4 +1,5 @@
 import Build_gradle.Versions.sqlDelightVersion
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
     kotlin("multiplatform")
@@ -8,12 +9,32 @@ plugins {
     kotlin("plugin.serialization") version "1.8.10"
     id("com.google.devtools.ksp") version "1.8.21-1.0.11"
     id("com.rickclephas.kmp.nativecoroutines") version "1.0.0-ALPHA-9"
+    id("com.github.ben-manes.versions") version "0.47.0"
 }
 
 dependencies {
     commonMainApi("dev.icerock.moko:resources:0.22.0")
 
     commonTestImplementation("dev.icerock.moko:resources-test:0.21.2")
+}
+
+configureDependencyCheck()
+
+// https://github.com/ben-manes/gradle-versions-plugin
+// run gradle dependencyUpdates
+fun configureDependencyCheck() {
+    tasks.withType<DependencyUpdatesTask> {
+        rejectVersionIf {
+            isNonStable(candidate.version) && !isNonStable(currentVersion)
+        }
+    }
+}
+
+fun isNonStable(version: String): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
+    val regex = "^[0-9,.v-]+(-r)?$".toRegex()
+    val isStable = stableKeyword || regex.matches(version)
+    return isStable.not()
 }
 
 multiplatformResources {
