@@ -12,8 +12,8 @@ android {
         applicationId = "com.drahovac.weatherstationdisplay.android"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.2.2-alpha"
+        versionCode = 6
+        versionName = "1.2.3-alpha"
     }
     buildFeatures {
         compose = true
