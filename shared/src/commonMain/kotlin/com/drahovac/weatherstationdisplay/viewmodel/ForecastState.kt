@@ -8,6 +8,7 @@ data class ForecastState(
     val error: NetworkError? = null,
     val days: List<ForecastDayState> = emptyList(),
     val selectedDayIndex: Int = 0,
+    val refreshing: Boolean = false,
 ) {
     val selectedDay = days.getOrNull(selectedDayIndex)
 }

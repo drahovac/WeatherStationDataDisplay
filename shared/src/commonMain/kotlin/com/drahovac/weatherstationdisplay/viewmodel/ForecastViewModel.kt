@@ -33,16 +33,20 @@ class ForecastViewModel(
 
     init {
         viewModelScope.coroutineScope.launch {
-            var code = credentialsRepository.getStationCode()
-            if (code == null) {
-                code = fetchStationCode()
-            }
-            code?.let {
-                forecastRepository.fetchForecast(
-                    Locale.language(),
-                    it
-                ).updateState()
-            }
+            refreshForecast()
+        }
+    }
+
+    private suspend fun refreshForecast() {
+        var code = credentialsRepository.getStationCode()
+        if (code == null) {
+            code = fetchStationCode()
+        }
+        code?.let {
+            forecastRepository.fetchForecast(
+                Locale.language(),
+                it
+            ).updateState()
         }
     }
 
@@ -56,7 +60,7 @@ class ForecastViewModel(
 
     private fun Result<Forecast>.updateState() {
         val state = getOrNull()?.toState() ?: ForecastState(error = networkErrorOrNull())
-        _state.update { state }
+        _state.update { state.copy(selectedDayIndex = it.selectedDayIndex) }
     }
 
     private fun Forecast.toState(): ForecastState {
@@ -98,6 +102,14 @@ class ForecastViewModel(
     override fun selectDay(index: Int) {
         _state.update { it.copy(selectedDayIndex = index) }
     }
+
+    override fun refresh() {
+        _state.update { it.copy(refreshing = true) }
+        viewModelScope.coroutineScope.launch {
+            refreshForecast()
+            _state.update { it.copy(refreshing = false) }
+        }
+    }
 }
 
 private fun Daypart.toDayPartsState(index: Int): DayPartState? {
@@ -137,4 +149,5 @@ private fun String.toPhase(): MoonPhase {
 
 interface ForecastActions {
     fun selectDay(index: Int)
+    fun refresh()
 }

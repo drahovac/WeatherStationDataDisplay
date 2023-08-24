@@ -1,5 +1,6 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,6 +52,7 @@ fun ForecastScreen(viewModel: ForecastViewModel = getViewModel()) {
 
     when {
         state.days.isNotEmpty() -> ScreenContent(
+            state.refreshing,
             state.selectedDayIndex,
             state.selectedDay,
             state.days,
@@ -62,88 +69,96 @@ fun ForecastScreen(viewModel: ForecastViewModel = getViewModel()) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun ScreenContent(
+    refreshing: Boolean,
     selectedDayIndex: Int,
     selectedDayState: ForecastDayState?,
     days: List<ForecastDayState>,
     actions: ForecastActions,
 ) {
-    Column {
-        TabRow(selectedTabIndex = selectedDayIndex) {
-            days.forEachIndexed { index, forecastDayState ->
-                Tab(
-                    selected = index == selectedDayIndex,
-                    onClick = { actions.selectDay(index) }) {
-                    Column(Modifier.padding(8.dp), horizontalAlignment = CenterHorizontally) {
-                        Text(
-                            style = MaterialTheme.typography.titleMedium,
-                            text = forecastDayState.dateTime.date.toLocalizedShortDayName()
-                        )
-                        Text(
-                            text = forecastDayState.temperatureMax.degrees
-                        )
-                        Text(
-                            text = forecastDayState.temperatureMin.degrees
-                        )
-                    }
-                }
-            }
-        }
+    val refresh =
+        rememberPullRefreshState(refreshing = refreshing, onRefresh = { actions.refresh() })
 
-        Column(
-            Modifier
-                .verticalScroll(rememberScrollState())
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            selectedDayState?.let { day ->
-                Spacer(modifier = Modifier.height(8.dp))
-                ForecastDesc(
-                    icon = day.icon,
-                    narrative = day.narrative,
-                    label = stringResource(id = MR.strings.weather_24_forecast.resourceId)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LabelValueFieldPair(
-                    label1 = stringResource(id = MR.strings.history_max_temperature.resourceId),
-                    value1 = day.temperatureMax.degrees,
-                    label2 = stringResource(id = MR.strings.history_min_temperature.resourceId),
-                    value2 = day.temperatureMin.degrees,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LabelValueFieldPair(
-                    label1 = stringResource(id = MR.strings.weather_rain_outlook.resourceId),
-                    value1 = "${day.rainOutlook} ${stringResource(id = MR.strings.current_mm.resourceId)}",
-                    label2 = stringResource(id = MR.strings.weather_snowfall_outlook.resourceId),
-                    value2 = "${day.snowOutlook} ${stringResource(id = MR.strings.weather_snowfall_cm.resourceId)}",
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LabelValueFieldPair(
-                    label1 = stringResource(id = MR.strings.current_uv.resourceId),
-                    value1 = day.uvIndex,
-                    label2 = stringResource(id = MR.strings.weather_sunrise.resourceId),
-                    value2 = day.sunrise,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    Column(Modifier.weight(1f)) {
-                        MoonPhase(day)
-                    }
-                    Column(Modifier.weight(1f)) {
-                        LabelValueField(
-                            label = stringResource(id = MR.strings.weather_sunset.resourceId),
-                            value = day.sunset,
-                        )
+    Box(modifier = Modifier.pullRefresh(refresh)) {
+        Column {
+            TabRow(selectedTabIndex = selectedDayIndex) {
+                days.forEachIndexed { index, forecastDayState ->
+                    Tab(
+                        selected = index == selectedDayIndex,
+                        onClick = { actions.selectDay(index) }) {
+                        Column(Modifier.padding(8.dp), horizontalAlignment = CenterHorizontally) {
+                            Text(
+                                style = MaterialTheme.typography.titleMedium,
+                                text = forecastDayState.dateTime.date.toLocalizedShortDayName()
+                            )
+                            Text(
+                                text = forecastDayState.temperatureMax.degrees
+                            )
+                            Text(
+                                text = forecastDayState.temperatureMin.degrees
+                            )
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(32.dp))
-                day.dayParts.forEach {
-                    DayPart(it)
+            }
+
+            Column(
+                Modifier
+                    .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                selectedDayState?.let { day ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ForecastDesc(
+                        icon = day.icon,
+                        narrative = day.narrative,
+                        label = stringResource(id = MR.strings.weather_24_forecast.resourceId)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LabelValueFieldPair(
+                        label1 = stringResource(id = MR.strings.history_max_temperature.resourceId),
+                        value1 = day.temperatureMax.degrees,
+                        label2 = stringResource(id = MR.strings.history_min_temperature.resourceId),
+                        value2 = day.temperatureMin.degrees,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LabelValueFieldPair(
+                        label1 = stringResource(id = MR.strings.weather_rain_outlook.resourceId),
+                        value1 = "${day.rainOutlook} ${stringResource(id = MR.strings.current_mm.resourceId)}",
+                        label2 = stringResource(id = MR.strings.weather_snowfall_outlook.resourceId),
+                        value2 = "${day.snowOutlook} ${stringResource(id = MR.strings.weather_snowfall_cm.resourceId)}",
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LabelValueFieldPair(
+                        label1 = stringResource(id = MR.strings.current_uv.resourceId),
+                        value1 = day.uvIndex,
+                        label2 = stringResource(id = MR.strings.weather_sunrise.resourceId),
+                        value2 = day.sunrise,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row {
+                        Column(Modifier.weight(1f)) {
+                            MoonPhase(day)
+                        }
+                        Column(Modifier.weight(1f)) {
+                            LabelValueField(
+                                label = stringResource(id = MR.strings.weather_sunset.resourceId),
+                                value = day.sunset,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                    day.dayParts.forEach {
+                        DayPart(it)
+                    }
+                    Spacer(modifier = Modifier.height(36.dp))
                 }
-                Spacer(modifier = Modifier.height(36.dp))
             }
         }
+        PullRefreshIndicator(refreshing, refresh, Modifier.align(TopCenter))
     }
 }
 
@@ -333,6 +348,7 @@ fun ForecastScreenPreview() {
         )
 
         ScreenContent(
+            refreshing = false,
             selectedDayIndex = 2,
             days = listOf(
                 day,

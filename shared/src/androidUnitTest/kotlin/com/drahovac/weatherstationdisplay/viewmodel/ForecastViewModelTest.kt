@@ -9,6 +9,7 @@ import com.drahovac.weatherstationdisplay.viewmodel.CurrentWeatherViewModelTest.
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -130,6 +131,21 @@ class ForecastViewModelTest {
             assertEquals("6, low", it.uvIndex)
             assertEquals("More sun than clouds. High 28C. Winds W at 10 to 15 km/h.", it.narrative)
         }
+    }
+
+    @Test
+    fun `refresh forecast`() {
+        successResponse()
+
+        forecastViewModel.selectDay(3)
+        forecastViewModel.refresh()
+        testDispatcher.scheduler.advanceTimeBy(1)
+
+        coVerify(exactly = 2) { forecastRepository.fetchForecast(
+            "en",
+            "geo"
+        ) }
+        assertEquals(3, forecastViewModel.state.value.selectedDayIndex)
     }
 
     private fun successResponse() {
