@@ -6,16 +6,15 @@ plugins {
     id("com.android.library")
     id("dev.icerock.mobile.multiplatform-resources")
     id("com.squareup.sqldelight")
-    kotlin("plugin.serialization") version "1.8.10"
-    id("com.google.devtools.ksp") version "1.8.21-1.0.11"
-    id("com.rickclephas.kmp.nativecoroutines") version "1.0.0-ALPHA-9"
+    kotlin("plugin.serialization") version "1.9.0"
+    id("com.rickclephas.kmp.nativecoroutines") version "1.0.0-ALPHA-17"
     id("com.github.ben-manes.versions") version "0.47.0"
 }
 
 dependencies {
-    commonMainApi("dev.icerock.moko:resources:0.22.0")
+    commonMainApi("dev.icerock.moko:resources:0.23.0")
 
-    commonTestImplementation("dev.icerock.moko:resources-test:0.21.2")
+    commonTestImplementation("dev.icerock.moko:resources-test:0.23.0")
 }
 
 configureDependencyCheck()
@@ -45,10 +44,11 @@ multiplatformResources {
 }
 
 kotlin {
+    jvmToolchain(20)
     android {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = "20"
             }
         }
     }
@@ -69,7 +69,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
-            export("dev.icerock.moko:resources:0.22.0")
+            export("dev.icerock.moko:resources:0.23.0")
             baseName = "shared"
         }
     }
@@ -77,7 +77,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-8")
+                api("com.rickclephas.kmm:kmm-viewmodel-core:1.0.0-ALPHA-13")
                 implementation("com.russhwolf:multiplatform-settings:1.0.0")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
                 implementation("com.squareup.sqldelight:runtime:$sqlDelightVersion")
@@ -104,13 +104,13 @@ kotlin {
                 implementation("androidx.security:security-crypto:1.1.0-alpha06")
                 implementation(Deps.Ktor.ktorAndroidEngine)
                 implementation("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
-                api("com.patrykandpatrick.vico:compose-m3:1.8.1")
+                api("com.patrykandpatrick.vico:compose-m3:1.11.0")
             }
         }
         val androidUnitTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.2")
-                implementation("io.mockk:mockk:1.13.5")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+                implementation("io.mockk:mockk:1.13.7")
             }
         }
         val iosX64Main by getting
@@ -148,10 +148,11 @@ android {
 }
 
 object Versions {
-    const val koin = "3.4.0"
+    const val koin = "3.4.3"
+    const val koinCompose = "3.4.6"
     const val sqlDelightVersion = "1.5.5"
-    const val ktor = "2.1.3"
-    const val serial = "1.4.1"
+    const val ktor = "2.3.3"
+    const val serial = "1.6.0"
 }
 
 object Deps {
@@ -160,7 +161,7 @@ object Deps {
         const val core = "io.insert-koin:koin-core:${Versions.koin}"
         const val test = "io.insert-koin:koin-test:${Versions.koin}"
         const val android = "io.insert-koin:koin-android:${Versions.koin}"
-        const val compose = "io.insert-koin:koin-androidx-compose:${Versions.koin}"
+        const val compose = "io.insert-koin:koin-androidx-compose:${Versions.koinCompose}"
     }
 
     object Ktor {

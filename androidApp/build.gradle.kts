@@ -7,11 +7,11 @@ plugins {
 
 android {
     namespace = "com.drahovac.weatherstationdisplay.android"
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
         applicationId = "com.drahovac.weatherstationdisplay.android"
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 5
         versionName = "1.2.2-alpha"
     }
@@ -19,7 +19,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.7"
+        kotlinCompilerExtensionVersion = "1.5.2"
     }
     packagingOptions {
         resources {
@@ -37,11 +37,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_20
+        targetCompatibility = JavaVersion.VERSION_20
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "20"
     }
 }
 
@@ -53,7 +53,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:$COMPOSE")
     implementation("androidx.compose.material:material:$COMPOSE")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
-    implementation("androidx.navigation:navigation-compose:2.6.0")
+    implementation("androidx.navigation:navigation-compose:2.7.1")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.compose.material3:material3:1.1.1")
@@ -61,7 +61,7 @@ dependencies {
 }
 
 object Version {
-    const val COMPOSE = "1.4.3"
+    const val COMPOSE = "1.5.0"
     const val proguardDefaultRules = "proguard-android.txt"
     const val proguardRules = "proguard-rules.pro"
 }

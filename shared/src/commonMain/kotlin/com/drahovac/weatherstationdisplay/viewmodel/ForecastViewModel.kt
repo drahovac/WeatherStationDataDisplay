@@ -63,7 +63,7 @@ class ForecastViewModel(
         return ForecastState(
             days = List(5) { dayIndex ->
                 val dayPartIndexes = listOf(2 * dayIndex, 2 * dayIndex + 1)
-                val dayPart = daypart.first()
+                val day = daypart.first()
 
                 ForecastDayState(
                     dateTime = dateTimesUtc[dayIndex].toLocalDateTime(TimeZone.currentSystemDefault()),
@@ -71,20 +71,20 @@ class ForecastViewModel(
                     temperatureMin = calendarDayTemperatureMin[dayIndex],
                     snowOutlook = qpfSnow[dayIndex],
                     rainOutlook = qpf[dayIndex],
-                    icon = daypart.first().iconCode.subList(
+                    icon = day.iconCode.subList(
                         dayPartIndexes.first(),
-                        dayPartIndexes.last()
-                    ).firstNotNullOf { it },
+                        (dayPartIndexes.last() + 1)
+                    ).firstNotNullOfOrNull { it } ?: 50,
                     sunrise = sunrisesUtc[dayIndex].toTimeString(),
                     sunset = sunsetsUtc[dayIndex].toTimeString(),
                     narrative = narrative[dayIndex],
                     moonPhase = moonPhaseCode[dayIndex].toPhase(),
                     moonPhaseDesc = moonPhase[dayIndex],
-                    dayParts = dayPartIndexes.mapNotNull { index -> dayPart.toDayPartsState(index) },
-                    uvIndex = dayPartIndexes.maxBy { index -> dayPart.uvIndex[index] ?: -1 }
+                    dayParts = dayPartIndexes.mapNotNull { index -> day.toDayPartsState(index) },
+                    uvIndex = dayPartIndexes.maxBy { index -> day.uvIndex[index] ?: -1 }
                         .let { index ->
-                            "${dayPart.uvIndex[index] ?: 0}, ${
-                                dayPart.uvDescription[index].orEmpty()
+                            "${day.uvIndex[index] ?: 0}, ${
+                                day.uvDescription[index].orEmpty()
                             }"
                         },
                 )

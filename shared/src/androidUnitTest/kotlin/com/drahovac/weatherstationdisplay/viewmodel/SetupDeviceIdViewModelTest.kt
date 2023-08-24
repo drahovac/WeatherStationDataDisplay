@@ -5,7 +5,6 @@ import com.drahovac.weatherstationdisplay.domain.Destination
 import com.drahovac.weatherstationdisplay.domain.DeviceCredentialsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

@@ -2,6 +2,7 @@ package com.drahovac.weatherstationdisplay
 
 import android.app.Application
 import com.drahovac.weatherstationdisplay.di.initApplication
+import org.koin.android.BuildConfig
 import org.koin.android.ext.koin.androidContext
 
 class WeatherApplication : Application() {
