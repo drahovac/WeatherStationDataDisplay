@@ -117,11 +117,12 @@ private fun ScreenContent(
                 initialPage = selectedDayIndex,
             )
             LaunchedEffect(key1 = selectedDayIndex) {
-                pagerState.scrollToPage(selectedDayIndex)
+                pagerState.animateScrollToPage(selectedDayIndex)
             }
             pagerState.onPageSelected(action = { actions.selectDay(it) })
             HorizontalPager(
-                state = pagerState
+                state = pagerState,
+                verticalAlignment = Alignment.Top,
             ) { page ->
                 Column(
                     Modifier
@@ -187,7 +188,7 @@ private fun ScreenContent(
 @Composable
 fun PagerState.onPageSelected(action: (page: Int) -> Unit) {
     LaunchedEffect(this) {
-        snapshotFlow { currentPage }.distinctUntilChanged().collect {
+        snapshotFlow { settledPage }.distinctUntilChanged().collect {
             action(it)
         }
     }
