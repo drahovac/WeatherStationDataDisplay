@@ -1,5 +1,7 @@
 package com.drahovac.weatherstationdisplay.android.ui
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -21,7 +26,9 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.TopCenter
@@ -42,6 +49,7 @@ import com.drahovac.weatherstationdisplay.viewmodel.ForecastActions
 import com.drahovac.weatherstationdisplay.viewmodel.ForecastDayState
 import com.drahovac.weatherstationdisplay.viewmodel.ForecastViewModel
 import com.drahovac.weatherstationdisplay.viewmodel.MoonPhase
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.datetime.LocalDateTime
 import org.koin.androidx.compose.getViewModel
 
@@ -54,7 +62,6 @@ fun ForecastScreen(viewModel: ForecastViewModel = getViewModel()) {
         state.days.isNotEmpty() -> ScreenContent(
             state.refreshing,
             state.selectedDayIndex,
-            state.selectedDay,
             state.days,
             viewModel
         )
@@ -69,12 +76,11 @@ fun ForecastScreen(viewModel: ForecastViewModel = getViewModel()) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun ScreenContent(
     refreshing: Boolean,
     selectedDayIndex: Int,
-    selectedDayState: ForecastDayState?,
     days: List<ForecastDayState>,
     actions: ForecastActions,
 ) {
@@ -88,7 +94,10 @@ private fun ScreenContent(
                     Tab(
                         selected = index == selectedDayIndex,
                         onClick = { actions.selectDay(index) }) {
-                        Column(Modifier.padding(8.dp), horizontalAlignment = CenterHorizontally) {
+                        Column(
+                            Modifier.padding(8.dp),
+                            horizontalAlignment = CenterHorizontally
+                        ) {
                             Text(
                                 style = MaterialTheme.typography.titleMedium,
                                 text = forecastDayState.dateTime.date.toLocalizedShortDayName()
@@ -103,62 +112,84 @@ private fun ScreenContent(
                     }
                 }
             }
-
-            Column(
-                Modifier
-                    .verticalScroll(rememberScrollState())
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                selectedDayState?.let { day ->
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ForecastDesc(
-                        icon = day.icon,
-                        narrative = day.narrative,
-                        label = stringResource(id = MR.strings.weather_24_forecast.resourceId)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LabelValueFieldPair(
-                        label1 = stringResource(id = MR.strings.history_max_temperature.resourceId),
-                        value1 = day.temperatureMax.degrees,
-                        label2 = stringResource(id = MR.strings.history_min_temperature.resourceId),
-                        value2 = day.temperatureMin.degrees,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LabelValueFieldPair(
-                        label1 = stringResource(id = MR.strings.weather_rain_outlook.resourceId),
-                        value1 = "${day.rainOutlook} ${stringResource(id = MR.strings.current_mm.resourceId)}",
-                        label2 = stringResource(id = MR.strings.weather_snowfall_outlook.resourceId),
-                        value2 = "${day.snowOutlook} ${stringResource(id = MR.strings.weather_snowfall_cm.resourceId)}",
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LabelValueFieldPair(
-                        label1 = stringResource(id = MR.strings.current_uv.resourceId),
-                        value1 = day.uvIndex,
-                        label2 = stringResource(id = MR.strings.weather_sunrise.resourceId),
-                        value2 = day.sunrise,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row {
-                        Column(Modifier.weight(1f)) {
-                            MoonPhase(day)
+            val pagerState = rememberPagerState(
+                pageCount = { days.size },
+                initialPage = selectedDayIndex,
+            )
+            LaunchedEffect(key1 = selectedDayIndex) {
+                pagerState.scrollToPage(selectedDayIndex)
+            }
+            pagerState.onPageSelected(action = { actions.selectDay(it) })
+            HorizontalPager(
+                state = pagerState
+            ) { page ->
+                Column(
+                    Modifier
+                        .verticalScroll(rememberScrollState())
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    days.getOrNull(page)?.let { day ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        ForecastDesc(
+                            icon = day.icon,
+                            narrative = day.narrative,
+                            label = stringResource(id = MR.strings.weather_24_forecast.resourceId)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LabelValueFieldPair(
+                            label1 = stringResource(id = MR.strings.history_max_temperature.resourceId),
+                            value1 = day.temperatureMax.degrees,
+                            label2 = stringResource(id = MR.strings.history_min_temperature.resourceId),
+                            value2 = day.temperatureMin.degrees,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LabelValueFieldPair(
+                            label1 = stringResource(id = MR.strings.weather_rain_outlook.resourceId),
+                            value1 = "${day.rainOutlook} ${stringResource(id = MR.strings.current_mm.resourceId)}",
+                            label2 = stringResource(id = MR.strings.weather_snowfall_outlook.resourceId),
+                            value2 = "${day.snowOutlook} ${stringResource(id = MR.strings.weather_snowfall_cm.resourceId)}",
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LabelValueFieldPair(
+                            label1 = stringResource(id = MR.strings.current_uv.resourceId),
+                            value1 = day.uvIndex,
+                            label2 = stringResource(id = MR.strings.weather_sunrise.resourceId),
+                            value2 = day.sunrise,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row {
+                            Column(Modifier.weight(1f)) {
+                                MoonPhase(day)
+                            }
+                            Column(Modifier.weight(1f)) {
+                                LabelValueField(
+                                    label = stringResource(id = MR.strings.weather_sunset.resourceId),
+                                    value = day.sunset,
+                                )
+                            }
                         }
-                        Column(Modifier.weight(1f)) {
-                            LabelValueField(
-                                label = stringResource(id = MR.strings.weather_sunset.resourceId),
-                                value = day.sunset,
-                            )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        day.dayParts.forEach {
+                            DayPart(it)
                         }
+                        Spacer(modifier = Modifier.height(36.dp))
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
-                    day.dayParts.forEach {
-                        DayPart(it)
-                    }
-                    Spacer(modifier = Modifier.height(36.dp))
                 }
             }
         }
         PullRefreshIndicator(refreshing, refresh, Modifier.align(TopCenter))
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@SuppressLint("ComposableNaming")
+@Composable
+fun PagerState.onPageSelected(action: (page: Int) -> Unit) {
+    LaunchedEffect(this) {
+        snapshotFlow { currentPage }.distinctUntilChanged().collect {
+            action(it)
+        }
     }
 }
 
@@ -357,7 +388,6 @@ fun ForecastScreenPreview() {
                 day.copy(dateTime = LocalDateTime.parse("2023-08-03T03:06")),
                 day.copy(dateTime = LocalDateTime.parse("2023-08-04T03:06")),
             ),
-            selectedDayState = day.copy(dateTime = LocalDateTime.parse("2023-08-02T03:06")),
             actions = ActionsInvocationHandler.createActionsProxy(),
         )
     }

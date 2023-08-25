@@ -4,15 +4,15 @@ import com.drahovac.weatherstationdisplay.domain.NetworkError
 import dev.icerock.moko.resources.StringResource
 import kotlinx.datetime.LocalDateTime
 
+@Stable
 data class ForecastState(
     val error: NetworkError? = null,
     val days: List<ForecastDayState> = emptyList(),
     val selectedDayIndex: Int = 0,
     val refreshing: Boolean = false,
-) {
-    val selectedDay = days.getOrNull(selectedDayIndex)
-}
+)
 
+@Stable
 data class ForecastDayState(
     val dateTime: LocalDateTime,
     val temperatureMax: Int?,
@@ -29,6 +29,7 @@ data class ForecastDayState(
     val uvIndex: String,
 )
 
+@Stable
 data class DayPartState(
     val name: String,
     val icon: Int,
