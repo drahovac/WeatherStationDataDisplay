@@ -65,8 +65,8 @@ import com.drahovac.weatherstationdisplay.viewmodel.TempChartSelection
 import com.drahovac.weatherstationdisplay.viewmodel.TempChartSets
 import com.drahovac.weatherstationdisplay.viewmodel.toTabData
 import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
-import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
@@ -252,8 +252,8 @@ private fun TemperatureChart(
                     }
                 }
             ),
-            startAxis = startAxis(
-                maxLabelCount = 6,
+            startAxis = rememberStartAxis(
+                itemPlacer = verticalItemPlacer(),
                 label = rememberStartAxisLabel(),
                 horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
                 valueFormatter = { value, _ ->
@@ -289,7 +289,7 @@ private fun TemperatureChart(
                     )
                 }
             },
-            bottomAxis = bottomAxis(
+            bottomAxis = rememberBottomAxis(
                 label = null,
                 itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
             ),
@@ -312,6 +312,9 @@ private fun TemperatureChart(
         }
     }
 }
+
+@Composable
+private fun verticalItemPlacer() = remember { AxisItemPlacer.Vertical.default(maxItemCount = 6) }
 
 @Composable
 private fun PressureChart(
@@ -386,8 +389,8 @@ private fun PressureChart(
                     }
                 }
             ),
-            startAxis = startAxis(
-                maxLabelCount = 6,
+            startAxis = rememberStartAxis(
+                itemPlacer = verticalItemPlacer(),
                 label = rememberStartAxisLabel(),
                 horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
                 valueFormatter = { value, _ ->
@@ -423,7 +426,7 @@ private fun PressureChart(
                     )
                 }
             },
-            bottomAxis = bottomAxis(
+            bottomAxis = rememberBottomAxis(
                 label = null,
                 itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
             ),
@@ -514,8 +517,8 @@ private fun HumidityChart(
                     }
                 }
             ),
-            startAxis = startAxis(
-                maxLabelCount = 6,
+            startAxis = rememberStartAxis(
+                itemPlacer = verticalItemPlacer(),
                 label = rememberStartAxisLabel(),
                 horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
                 valueFormatter = { value, _ ->
@@ -551,7 +554,7 @@ private fun HumidityChart(
                     )
                 }
             },
-            bottomAxis = bottomAxis(
+            bottomAxis = rememberBottomAxis(
                 label = null,
                 itemPlacer = AxisItemPlacer.Horizontal.default(offset = 0)
             ),

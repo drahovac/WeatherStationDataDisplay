@@ -3,6 +3,7 @@ import Build_gradle.Version.COMPOSE
 plugins {
     id("com.android.application")
     kotlin("android")
+    id("dev.shreyaspatil.compose-compiler-report-generator") version "1.1.0"
 }
 
 android {
